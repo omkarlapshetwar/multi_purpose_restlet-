@@ -479,14 +479,23 @@ define(['N/query', 'N/format', 'N/log'], function (query, format, log) {
                         whereClauses.push(fieldWithAlias + ' IN (' + placeholders + ')');
                         params = params.concat(value);
                     }
-                } else if (typeof value === 'object' && value.operator && value.value !== undefined) {
+                } else if (typeof value === 'object' && value.operator) {
                     // Handle custom operators
                     const operator = value.operator.toUpperCase();
-                    const validOperators = ['=', '!=', '<>', '>', '<', '>=', '<=', 'LIKE', 'NOT LIKE'];
-                    if (validOperators.indexOf(operator) !== -1) {
-                        const fieldWithAlias = getFieldWithAlias(key, alias, mainTable);
-                        whereClauses.push(fieldWithAlias + ' ' + operator + ' ?');
-                        params.push(value.value);
+                    const fieldWithAlias = getFieldWithAlias(key, alias, mainTable);
+                    
+                    // Operators that don't need values (NULL operators)
+                    const nullOperators = ['IS NULL', 'IS NOT NULL'];
+                    if (nullOperators.indexOf(operator) !== -1) {
+                        whereClauses.push(fieldWithAlias + ' ' + operator);
+                        // No parameter needed for NULL operators
+                    } else if (value.value !== undefined) {
+                        // Operators that need values
+                        const validOperators = ['=', '!=', '<>', '>', '<', '>=', '<=', 'LIKE', 'NOT LIKE'];
+                        if (validOperators.indexOf(operator) !== -1) {
+                            whereClauses.push(fieldWithAlias + ' ' + operator + ' ?');
+                            params.push(value.value);
+                        }
                     }
                 } else if (typeof value === 'boolean') {
                     // Handle boolean values

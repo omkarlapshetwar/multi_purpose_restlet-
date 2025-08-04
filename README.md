@@ -557,11 +557,109 @@ The RESTlet supports dynamic querying of any NetSuite record type:
 
 #### Filter Operators
 
-- **Simple Equality**: `"field": "value"`
-- **Array (IN clause)**: `"field": ["value1", "value2"]`
-- **Custom Operators**: `"field": {"operator": ">=", "value": 100}`
-- **Date Ranges**: `"field_startdate": "01-01-2024"`, `"field_enddate": "31-12-2024"`
-- **Boolean**: `"field": true` or `"field": "T"/"F"`
+**We support 12 SQL operators:**
+
+| Operator | Purpose | Example |
+|----------|---------|---------|
+| `=` (default) | Equals | `"status": "A"` |
+| `!=` | Not equals | `"email": {"operator": "!=", "value": ""}` |
+| `>` | Greater than | `"amount": {"operator": ">", "value": "1000"}` |
+| `<` | Less than | `"amount": {"operator": "<", "value": "5000"}` |
+| `>=` | Greater/equal | `"id": {"operator": ">=", "value": "100"}` |
+| `<=` | Less/equal | `"total": {"operator": "<=", "value": "10000"}` |
+| `LIKE` | Pattern match | `"name": {"operator": "LIKE", "value": "%Inc%"}` |
+| `NOT LIKE` | Negative pattern | `"name": {"operator": "NOT LIKE", "value": "%Test%"}` |
+| `IS NULL` | Field is null | `"email": {"operator": "IS NULL"}` |
+| `IS NOT NULL` | Field not null | `"phone": {"operator": "IS NOT NULL"}` |
+| `IN` (array) | Multiple values | `"type": ["SalesOrd", "CustInvc"]` |
+| `BETWEEN` (dates) | Date range | `"trandate_startdate": "01-01-2024"` |
+
+#### Available Fields for Filtering
+
+**Any field available in the NetSuite record type** can be filtered. Here are the main categories:
+
+##### 🏢 Entity Records (Customer, Employee, Vendor)
+
+```javascript
+// Standard fields available for filtering:
+"id", "entityid", "companyname", "firstname", "lastname", 
+"email", "phone", "fax", "isinactive", "isperson", 
+"datecreated", "lastmodifieddate", "subsidiary", 
+"category", "class", "location", "department"
+
+// Custom fields:
+"custentity_[field_id]"
+```
+
+##### 💼 Transaction Records
+
+```javascript
+// Standard transaction fields:
+"id", "tranid", "type", "trandate", "status", "entity", 
+"total", "subtotal", "taxtotal", "currency", "exchangerate",
+"postingperiod", "subsidiary", "location", "department",
+"memo", "externalid"
+
+// Custom transaction fields:
+"custbody_[field_id]"
+```
+
+##### 📦 Item Records
+
+```javascript
+// Standard item fields:
+"id", "itemid", "displayname", "itemtype", "isinactive",
+"quantityavailable", "cost", "baseprice", "subsidiary"
+
+// Custom item fields:
+"custitem_[field_id]"
+```
+
+##### 💰 Account Records
+
+```javascript
+// Standard account fields:
+"id", "acctname", "accttype", "acctnumber", "isinactive",
+"subsidiary", "class", "department"
+```
+
+#### Filter Examples
+
+**Basic Filtering:**
+```json
+{
+  "recordType": "customer",
+  "filters": {
+    "isinactive": "F",
+    "email": {"operator": "IS NOT NULL"}
+  }
+}
+```
+
+**Advanced Multi-Filter:**
+```json
+{
+  "recordType": "transaction",
+  "filters": {
+    "type": ["SalesOrd", "CustInvc"],
+    "trandate_startdate": "01-01-2024",
+    "trandate_enddate": "31-12-2024",
+    "total": {"operator": ">", "value": "1000"},
+    "status": {"operator": "!=", "value": "Voided"}
+  }
+}
+```
+
+**Custom Field Filtering:**
+```json
+{
+  "recordType": "customer",
+  "filters": {
+    "custentity_region": "North America",
+    "custentity_priority": {"operator": ">=", "value": "3"}
+  }
+}
+```
 
 #### Response Format
 
