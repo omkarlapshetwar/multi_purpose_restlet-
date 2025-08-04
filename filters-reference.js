@@ -2,8 +2,10 @@
  * 🧪 NetSuite RESTlet Filter Examples Reference
  * ==============================================
  * 
- * This file contains all the filter examples from our test suites.
+ * This file contains 33+ filter examples from our test suites.
  * Copy any JSON example and paste it into Postman or your API testing tool.
+ * 
+ * ✅ NEW: Includes IS NULL and IS NOT NULL operators (tested and verified!)
  * 
  * 📋 HOW TO USE:
  * 1. Copy the JSON from any example below
@@ -293,11 +295,92 @@ const inventoryItems = {
 };
 
 // ===============================================
+// 🔍 NULL OPERATOR TESTS (VERIFIED WORKING)
+// ===============================================
+
+/**
+ * 20. IS NOT NULL - Customers with Email (TESTED ✅)
+ * Purpose: Find customers that have email addresses (field is not null)
+ * Test Result: 792 records found
+ */
+const customersWithEmailNotNull = {
+  "recordType": "customer",
+  "filters": {
+    "isinactive": "F",
+    "email": {"operator": "IS NOT NULL"}
+  },
+  "fields": ["id", "entityid", "companyname", "email"],
+  "pageSize": 5
+};
+
+/**
+ * 21. IS NOT NULL - Employees with Phone (TESTED ✅)
+ * Purpose: Find employees that have phone numbers (field is not null)
+ * Test Result: 997 records found
+ */
+const employeesWithPhoneNotNull = {
+  "recordType": "employee", 
+  "filters": {
+    "isinactive": "F",
+    "phone": {"operator": "IS NOT NULL"}
+  },
+  "fields": ["id", "entityid", "firstname", "lastname", "phone"],
+  "pageSize": 3
+};
+
+/**
+ * 22. IS NULL - Customers without Fax (TESTED ✅)
+ * Purpose: Find customers that do not have fax numbers (field is null)
+ * Test Result: 809 records found
+ */
+const customersWithoutFax = {
+  "recordType": "customer",
+  "filters": {
+    "isinactive": "F", 
+    "fax": {"operator": "IS NULL"}
+  },
+  "fields": ["id", "entityid", "companyname", "fax"],
+  "pageSize": 5
+};
+
+/**
+ * 23. Combined NULL Operators (TESTED ✅)
+ * Purpose: Companies with email but no phone (combined NULL operators)
+ * Test Result: 781 records found
+ */
+const combinedNullFilters = {
+  "recordType": "customer",
+  "filters": {
+    "isinactive": "F",
+    "email": {"operator": "IS NOT NULL"},
+    "phone": {"operator": "IS NULL"},
+    "isperson": "F"
+  },
+  "fields": ["id", "entityid", "companyname", "email", "phone"],
+  "pageSize": 3
+};
+
+/**
+ * 24. Transaction IS NOT NULL Memo (TESTED ✅)
+ * Purpose: Find sales orders that have memo text (transaction field not null)
+ * Test Result: 142 records found
+ */
+const transactionWithMemoNotNull = {
+  "recordType": "transaction",
+  "filters": {
+    "type": "SalesOrd",
+    "memo": {"operator": "IS NOT NULL"}
+  },
+  "fields": ["id", "tranid", "type", "memo"],
+  "pageSize": 3
+};
+
+// ===============================================
 // 🔍 ADVANCED FILTERS & EDGE CASES
 // ===============================================
 
 /**
- * 20. Pagination Test
+ * 25. Pagination Test
  * Purpose: Test pagination functionality
  */
 const paginationTest = {
@@ -311,7 +394,7 @@ const paginationTest = {
 };
 
 /**
- * 21. Empty Filters (No Filter)
+ * 26. Empty Filters (No Filter)
  * Purpose: Get all records of a type (use with caution)
  */
 const noFilters = {
@@ -321,7 +404,7 @@ const noFilters = {
 };
 
 /**
- * 22. Complex Boolean Combinations
+ * 27. Complex Boolean Combinations
  * Purpose: Multiple boolean conditions
  */
 const complexBoolean = {
@@ -339,7 +422,7 @@ const complexBoolean = {
 };
 
 /**
- * 23. Numeric Range Filter
+ * 28. Numeric Range Filter
  * Purpose: Filter by numeric values
  */
 const numericRange = {
@@ -356,7 +439,7 @@ const numericRange = {
 };
 
 /**
- * 24. Large Page Size Test
+ * 29. Large Page Size Test
  * Purpose: Test system limits
  */
 const largePageSize = {
@@ -368,7 +451,7 @@ const largePageSize = {
 };
 
 /**
- * 25. Single Array Value
+ * 30. Single Array Value
  * Purpose: Array filter with only one value
  */
 const singleArrayValue = {
@@ -384,7 +467,7 @@ const singleArrayValue = {
 // ===============================================
 
 /**
- * 26. Minimal Fields (Performance)
+ * 31. Minimal Fields (Performance)
  * Purpose: Get only specific fields for better performance
  */
 const minimalFields = {
@@ -397,7 +480,7 @@ const minimalFields = {
 };
 
 /**
- * 27. ID Only Query
+ * 32. ID Only Query
  * Purpose: Get just IDs for bulk operations
  */
 const idOnly = {
@@ -436,7 +519,7 @@ const idOnly = {
  */
 
 /**
- * 28. All Operator Examples
+ * 33. All Operator Examples
  */
 const operatorExamples = {
   "recordType": "customer",
@@ -545,6 +628,13 @@ if (typeof module !== 'undefined' && module.exports) {
         transactionByStatus,
         activeItems,
         inventoryItems,
+        // New NULL operator examples (tested and verified)
+        customersWithEmailNotNull,
+        employeesWithPhoneNotNull,
+        customersWithoutFax,
+        combinedNullFilters,
+        transactionWithMemoNotNull,
+        // Advanced filters
         paginationTest,
         noFilters,
         complexBoolean,
