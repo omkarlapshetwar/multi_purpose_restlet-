@@ -3,228 +3,153 @@
  * @NScriptType Restlet
  * @NModuleScope SameAccount
  * 
- * Multi-Purpose NetSuite RESTlet - Professional Edition
+ * IMPROVED GENERIC NETSUITE RESTLET
  * 
- * This RESTlet provides a unified API for querying any NetSuite record type
- * with dynamic filtering, field selection, and pagination capabilities.
+ * NEW GENERIC FILTER STRUCTURE:
+ * {
+ *   "recordType": "customer",
+ *   "filters": [
+ *     {
+ *       "field_name": "isinactive",
+ *       "operator": "equals",
+ *       "value": "F"
+ *     },
+ *     {
+ *       "field_name": "datecreated", 
+ *       "operator": "date_range",
+ *       "startdate": "01-01-2024",
+ *       "enddate": "31-12-2024"
+ *     }
+ *   ],
+ *   "fields": ["id", "entityid", "companyname"],
+ *   "pageSize": 10
+ * }
  * 
- * @fileoverview Universal Dynamic NetSuite Restlet - Query Any Record Type
- * @author NetSuite RESTlet Team
- * @version 2.0.0
- * 
- * @description
- * SUPPORTED NETSUITE RECORD CATEGORIES:
- * 
- * === TRANSACTIONS ===
- * All transactions stored in 'transaction' table with different types:
- * - transaction (filter by 'type' field for specific transaction types)
- *   Common Types: 'SalesOrd', 'CustInvc', 'CashSale', 'Estimate', 'CustPymt', 'CustDep', 'CustCred', 'CustRfnd'
- *                 'PurchOrd', 'VendBill', 'VendPymt', 'VendCred', 'Check', 'Journal', 'Deposit', 'ExpRept'
- *                 'ItemShip', 'ItemRcpt', 'InvAdjst', 'InvTrnfr', 'Build', 'Unbuild', 'WorkOrd', 'Opprtnty'
- * - revenueplan (Revenue Plans) - Uses detailed hardcoded configuration
- * - revenuerecognitionschedule (Revenue Recognition Schedules)
- * 
- * === ENTITIES ===
- * - customer, vendor, employee, contact, partner, job, entitygroup, competitor, lead, prospect
- * 
- * === ITEMS ===
- * - item, inventoryitem, noninventoryitem, serviceitem, assemblyitem, kititem, downloaditem,
- *   giftcertificateitem, discountitem, markupitem, paymentitem, subtotalitem, expenseitem,
- *   descriptionitem, otherchargeitem
- * 
- * === LISTS & SETUP ===
- * - account, accountingperiod, bin, location, department, classification, currency,
- *   subsidiary, customlist, budgets, campaign, file, folder
- * 
- * === ACTIVITIES ===
- * - calendarevent, task, phonecall, message, note
- * 
- * === SUPPORT & CRM ===
- * - supportcase, issue, solution, topic, campaignresponse
- * 
- * === CUSTOM RECORDS ===
- * - customrecord_[id] (Custom Records - replace [id] with actual custom record ID)
+ * SUPPORTED OPERATORS:
+ * - Comparison: equals, not_equals, greater_than, less_than, greater_than_or_equal, less_than_or_equal
+ * - String: contains, starts_with, ends_with, not_contains  
+ * - Array: in, not_in
+ * - NULL: is_null, is_not_null
+ * - Date: date_range, date_equals, date_before, date_after
+ * - Boolean: is_true, is_false
  */
-
 define(['N/query', 'N/format', 'N/log'], function (query, format, log) {
 
-    /**
-     * Revenue Plan Configuration
-     * Hardcoded configuration for revenue plan queries with enhanced features
-     */
-    const REVENUE_PLAN_CONFIG = {
-        mainTable: 'revenueplan',
-        alias: 'rp',
-        fields: [
-            'rp.id AS internalid',
-            'rp.recordnumber AS recordnumber',
-            'rp.createdfrom',
-            'rp.revrecstartdate',
-            'rp.revrecenddate',
-            'rp.revenueplancurrency',
-            'rp.amount',
-            'rp.exchangerate',
-            'rp.revenueplantype',
-            'rp.lastmodifieddate AS lastmodifieddate',
-            'CASE WHEN rp.revenueplantype = \'ACTUAL\' THEN \'Actual\' ELSE \'Planned\' END AS plan_category',
-            'pr.plannedperiod AS plannedperiod_id',
-            'pp.periodname AS plannedperiod_name',
-            'pr.postingperiod AS postingperiod_id',
-            'postp.periodname AS postingperiod_name',
-            'pr.amount AS planned_amount',
-            'pr.deferredrevenueaccount',
-            'pr.recognitionaccount',
-            'pr.journal',
-            'pr.dateexecuted',
-            'pr.isrecognized',
-            'pr.periodcomments'
-        ],
-        joins: [
-            'LEFT JOIN revenueplanplannedrevenue AS pr ON pr.revenueplan = rp.id',
-            'LEFT JOIN accountingperiod AS pp ON pr.plannedperiod = pp.id',
-            'LEFT JOIN accountingperiod AS postp ON pr.postingperiod = postp.id'
-        ],
-        enableStats: true,
-        statsConfig: {
-            amountField: 'planned_amount',
-            recognizedField: 'isrecognized'
-        }
-    };
-
-    /**
-     * Record type categories for intelligent query optimization
-     */
-    const RECORD_CATEGORIES = {
-        TRANSACTION: ['transaction', 'revenueplan', 'revenuerecognitionschedule'],
-        ENTITY: ['customer', 'vendor', 'employee', 'contact', 'partner', 'job', 'entitygroup', 'competitor', 'lead', 'prospect'],
-        ITEM: ['item', 'inventoryitem', 'noninventoryitem', 'serviceitem', 'assemblyitem', 'kititem', 'downloaditem', 
-               'giftcertificateitem', 'discountitem', 'markupitem', 'paymentitem', 'subtotalitem', 'expenseitem', 
-               'descriptionitem', 'otherchargeitem'],
-        LIST: ['account', 'accountingperiod', 'bin', 'location', 'department', 'classification', 'currency', 
-               'subsidiary', 'customlist', 'budgets', 'campaign', 'file', 'folder'],
-        ACTIVITY: ['calendarevent', 'task', 'phonecall', 'message', 'note'],
-        SUPPORT: ['supportcase', 'issue', 'solution', 'topic', 'campaignresponse']
-    };
-
-    /**
-     * Transaction-specific configuration for SuiteQL joins
-     */
-    const TRANSACTION_CONFIG = {
-        mainTable: 'transaction',
-        alias: 'tra',
-        fields: [
-            'tra.id AS id',
-            'tra.tranid AS tranid', 
-            'tra.trandate AS trandate',
-            'tra.type AS type',
-            'tra.status AS status',
-            'tra.entity AS entity',
-            'tra.memo AS memo',
-            'tra.datecreated AS createddate',
-            'tra.lastmodifieddate AS lastmodifieddate',
-            'tl.netamount AS amount',
-            'tl.foreignamount AS foreignamount',
-            'tl.rate AS rate',
-            'tl.quantity AS quantity',
-            'tl.location AS location',
-            'tl.subsidiary AS subsidiary',
-            'tl.department AS department',
-            'tl.class AS class'
-        ],
-        joins: [
-            'LEFT JOIN TransactionLine AS tl ON tl.transaction = tra.id AND tl.mainline = \'T\''
-        ],
-        enableStats: false
-    };
-
-    /**
-     * Get record category for optimization
-     * @param {string} recordType - Record type to categorize
-     * @returns {string} Category name
-     */
-    function getRecordCategory(recordType) {
-        if (!recordType) return 'UNKNOWN';
+    // Standardized operator mapping
+    const OPERATORS = {
+        // Comparison operators
+        equals: '=',
+        not_equals: '!=',
+        greater_than: '>',
+        less_than: '<',
+        greater_than_or_equal: '>=',
+        less_than_or_equal: '<=',
         
+        // String operators
+        contains: 'LIKE',
+        starts_with: 'LIKE',
+        ends_with: 'LIKE',
+        not_contains: 'NOT LIKE',
+        
+        // Array operators
+        in: 'IN',
+        not_in: 'NOT IN',
+        
+        // NULL operators
+        is_null: 'IS NULL',
+        is_not_null: 'IS NOT NULL',
+        
+        // Date operators
+        date_equals: '=',
+        date_before: '<',
+        date_after: '>',
+        
+        // Boolean operators
+        is_true: '=',
+        is_false: '='
+    };
+
+    // Record type to base table mapping
+    const RECORD_TABLE_MAPPING = {
+        // Transactions (base table)
+        transaction: 'transaction',
+        
+        // Entities (base tables)
+        customer: 'customer',
+        vendor: 'vendor', 
+        employee: 'employee',
+        contact: 'contact',
+        partner: 'partner',
+        job: 'job',
+        entitygroup: 'entitygroup',
+        competitor: 'competitor',
+        lead: 'lead',
+        prospect: 'prospect',
+        
+        // Items (base tables)
+        item: 'item',
+        inventoryitem: 'item',
+        noninventoryitem: 'item',
+        serviceitem: 'item',
+        assemblyitem: 'item',
+        kititem: 'item',
+        downloaditem: 'item',
+        giftcertificateitem: 'item',
+        discountitem: 'item',
+        markupitem: 'item',
+        paymentitem: 'item',
+        subtotalitem: 'item',
+        expenseitem: 'item',
+        descriptionitem: 'item',
+        otherchargeitem: 'item',
+        
+        // Lists & Setup (base tables)
+        account: 'account',
+        accountingperiod: 'accountingperiod',
+        bin: 'bin',
+        location: 'location',
+        department: 'department',
+        classification: 'classification',
+        currency: 'currency',
+        subsidiary: 'subsidiary',
+        customlist: 'customlist',
+        budgets: 'budgets',
+        campaign: 'campaign',
+        file: 'file',
+        folder: 'folder',
+        
+        // Activities (base tables)
+        calendarevent: 'calendarevent',
+        task: 'task',
+        phonecall: 'phonecall',
+        message: 'message',
+        note: 'note',
+        
+        // Support & CRM (base tables)
+        supportcase: 'supportcase',
+        issue: 'issue',
+        solution: 'solution',
+        topic: 'topic',
+        campaignresponse: 'campaignresponse'
+    };
+
+    /**
+     * Get base table name for record type
+     */
+    function getBaseTable(recordType) {
         const lowerType = recordType.toLowerCase();
-        
-        // Check for custom records
-        if (lowerType.indexOf('customrecord_') === 0) {
-            return 'CUSTOM';
-        }
-        
-        // Find category
-        for (const category in RECORD_CATEGORIES) {
-            if (RECORD_CATEGORIES[category].indexOf(lowerType) !== -1) {
-                return category;
-            }
-        }
-        
-        return 'UNKNOWN';
+        return RECORD_TABLE_MAPPING[lowerType] || recordType;
     }
 
     /**
-     * Create dynamic configuration for any record type
-     * @param {string} recordType - Record type to query
-     * @param {Array} customFields - Custom fields to select
-     * @returns {Object} Configuration object
+     * Generate table alias for record type
      */
-    function createDynamicConfig(recordType, customFields) {
+    function generateAlias(recordType) {
         const lowerType = recordType.toLowerCase();
         
-        // Special case: Revenue Plan uses hardcoded configuration
-        if (lowerType === 'revenueplan') {
-            return REVENUE_PLAN_CONFIG;
-        }
-        
-        // Special case: Transaction requires joins to TransactionLine
-        if (lowerType === 'transaction') {
-            if (customFields && Array.isArray(customFields) && customFields.length > 0) {
-                log.debug('Transaction Custom Fields Input', customFields);
-                const mappedFields = customFields.map(function(field) {
-                    // Handle amount field mapping
-                    if (field === 'amount') {
-                        return 'tl.netamount AS amount';
-                    }
-                    // Add proper alias prefix if not already present
-                    if (field.indexOf('.') === -1 && field.indexOf('(') === -1 && field.indexOf(' AS ') === -1) {
-                        // Check if it's a TransactionLine field
-                        const transactionLineFields = ['netamount', 'foreignamount', 'rate', 'quantity', 'location', 'subsidiary', 'department', 'class'];
-                        if (transactionLineFields.indexOf(field) !== -1) {
-                            return 'tl.' + field;
-                        } else if (field === 'createddate') {
-                            return 'tra.datecreated AS createddate';
-                        } else {
-                            return 'tra.' + field;
-                        }
-                    }
-                    return field;
-                });
-                
-                return {
-                    mainTable: 'transaction',
-                    alias: 'tra',
-                    fields: mappedFields,
-                    joins: ['LEFT JOIN TransactionLine AS tl ON tl.transaction = tra.id AND tl.mainline = \'T\''],
-                    enableStats: false
-                };
-            } else {
-                // When no custom fields specified, use simple wildcard
-                return {
-                    mainTable: 'transaction',
-                    alias: 'tra',
-                    fields: ['tra.*'],
-                    joins: [],
-                    enableStats: false
-                };
-            }
-        }
-        
-        // Create dynamic alias with conflict resolution
-        let alias = lowerType.charAt(0);
-        
-        // Handle common conflicts by using 2-3 characters
+        // Handle common conflicts
         const commonConflicts = {
-            'c': ['customer', 'contact', 'campaign', 'classification', 'currency', 'customlist', 'competitor', 'calendarevent', 'customrecord'],
+            'c': ['customer', 'contact', 'campaign', 'classification', 'currency', 'customlist', 'competitor', 'calendarevent'],
             'i': ['item', 'inventoryitem', 'issue'],
             't': ['transaction', 'task', 'topic'],
             'a': ['account', 'accountingperiod', 'assemblyitem'],
@@ -234,8 +159,9 @@ define(['N/query', 'N/format', 'N/log'], function (query, format, log) {
             'p': ['partner', 'prospect', 'phonecall', 'paymentitem']
         };
         
+        let alias = lowerType.charAt(0);
+        
         if (commonConflicts[alias] && commonConflicts[alias].length > 1) {
-            // Use first 2-3 characters for common conflicts
             if (lowerType.length >= 3) {
                 alias = lowerType.substring(0, 3);
             } else {
@@ -243,125 +169,163 @@ define(['N/query', 'N/format', 'N/log'], function (query, format, log) {
             }
         }
         
-        const config = {
-            mainTable: recordType,
-            alias: alias,
-            fields: [],
-            joins: [],
-            enableStats: false
-        };
+        return alias;
+    }
+
+    /**
+     * Process generic filter to SQL condition
+     */
+    function processFilter(filter, alias) {
+        const fieldName = filter.field_name;
+        const operator = filter.operator;
+        const value = filter.value;
+        const startdate = filter.startdate;
+        const enddate = filter.enddate;
+        const values = filter.values;
         
-        // Determine fields to select
-        if (customFields && Array.isArray(customFields) && customFields.length > 0) {
-            // Use custom fields if provided
-            config.fields = customFields.map(function(field) {
-                // Add alias prefix if not already present
-                if (field.indexOf('.') === -1 && field.indexOf('(') === -1) {
-                    return alias + '.' + field;
+        const fieldWithAlias = alias + '.' + fieldName;
+        
+        // Handle different operator types
+        switch (operator) {
+            case 'equals':
+                return {
+                    condition: fieldWithAlias + ' = ?',
+                    params: [value]
+                };
+                
+            case 'not_equals':
+                return {
+                    condition: fieldWithAlias + ' != ?',
+                    params: [value]
+                };
+                
+            case 'greater_than':
+                return {
+                    condition: fieldWithAlias + ' > ?',
+                    params: [value]
+                };
+                
+            case 'less_than':
+                return {
+                    condition: fieldWithAlias + ' < ?',
+                    params: [value]
+                };
+                
+            case 'greater_than_or_equal':
+                return {
+                    condition: fieldWithAlias + ' >= ?',
+                    params: [value]
+                };
+                
+            case 'less_than_or_equal':
+                return {
+                    condition: fieldWithAlias + ' <= ?',
+                    params: [value]
+                };
+                
+            case 'contains':
+                return {
+                    condition: fieldWithAlias + ' LIKE ?',
+                    params: ['%' + value + '%']
+                };
+                
+            case 'starts_with':
+                return {
+                    condition: fieldWithAlias + ' LIKE ?',
+                    params: [value + '%']
+                };
+                
+            case 'ends_with':
+                return {
+                    condition: fieldWithAlias + ' LIKE ?',
+                    params: ['%' + value]
+                };
+                
+            case 'not_contains':
+                return {
+                    condition: fieldWithAlias + ' NOT LIKE ?',
+                    params: ['%' + value + '%']
+                };
+                
+            case 'in':
+                if (values && Array.isArray(values) && values.length > 0) {
+                    const placeholders = values.map(() => '?').join(',');
+                    return {
+                        condition: fieldWithAlias + ' IN (' + placeholders + ')',
+                        params: values
+                    };
                 }
-                return field;
-            });
-        } else {
-            // Default: select all fields
-            config.fields = [alias + '.*'];
+                break;
+                
+            case 'not_in':
+                if (values && Array.isArray(values) && values.length > 0) {
+                    const placeholders = values.map(() => '?').join(',');
+                    return {
+                        condition: fieldWithAlias + ' NOT IN (' + placeholders + ')',
+                        params: values
+                    };
+                }
+                break;
+                
+            case 'is_null':
+                return {
+                    condition: fieldWithAlias + ' IS NULL',
+                    params: []
+                };
+                
+            case 'is_not_null':
+                return {
+                    condition: fieldWithAlias + ' IS NOT NULL',
+                    params: []
+                };
+                
+            case 'date_range':
+                if (startdate && enddate) {
+                    return {
+                        condition: fieldWithAlias + ' >= TO_DATE(?, \'YYYY-MM-DD\') AND ' + fieldWithAlias + ' <= TO_DATE(?, \'YYYY-MM-DD\')',
+                        params: [formatDateString(startdate), formatDateString(enddate)]
+                    };
+                }
+                break;
+                
+            case 'date_equals':
+                return {
+                    condition: fieldWithAlias + ' = TO_DATE(?, \'YYYY-MM-DD\')',
+                    params: [formatDateString(value)]
+                };
+                
+            case 'date_before':
+                return {
+                    condition: fieldWithAlias + ' < TO_DATE(?, \'YYYY-MM-DD\')',
+                    params: [formatDateString(value)]
+                };
+                
+            case 'date_after':
+                return {
+                    condition: fieldWithAlias + ' > TO_DATE(?, \'YYYY-MM-DD\')',
+                    params: [formatDateString(value)]
+                };
+                
+            case 'is_true':
+                return {
+                    condition: fieldWithAlias + ' = ?',
+                    params: ['T']
+                };
+                
+            case 'is_false':
+                return {
+                    condition: fieldWithAlias + ' = ?',
+                    params: ['F']
+                };
+                
+            default:
+                log.error('Unsupported operator', operator);
+                return null;
         }
-        
-        return config;
     }
 
     /**
-     * Enhanced statistics calculation for revenue plans
-     * @param {Array} records - Records to process
-     * @param {Object} statsConfig - Statistics configuration
-     * @returns {Array} Enhanced records with statistics
-     */
-    function calculateRecognitionStats(records, statsConfig) {
-        if (!statsConfig || !statsConfig.amountField) return records;
-        
-        const amountField = statsConfig.amountField;
-        const recognizedField = statsConfig.recognizedField;
-        
-        const totalPlanAmount = records.reduce(function (sum, row) {
-            return sum + parseFloat(row[amountField] || 0);
-        }, 0);
-
-        let cumulative = 0;
-
-        return records.map(function (row) {
-            const amount = parseFloat(row[amountField] || 0);
-            const isRecognized = recognizedField ? String(row[recognizedField]) : false;
-
-            const recognizedThisPeriod = isRecognized ? amount : 0;
-            cumulative += recognizedThisPeriod;
-
-            if (recognizedField) {
-                row.percent_recognized_in_period = isRecognized
-                    ? ((amount / totalPlanAmount) * 100).toFixed(4) + '%'
-                    : '0.0000%';
-
-                row.percent_total_recognized = ((cumulative / totalPlanAmount) * 100).toFixed(4) + '%';
-                row.total_recognized = cumulative.toFixed(2);
-            }
-
-            return row;
-        });
-    }
-
-    /**
-     * Helper function to pad strings (NetSuite compatible)
-     * @param {string} str - String to pad
-     * @param {number} length - Target length
-     * @param {string} padChar - Character to pad with
-     * @returns {string} Padded string
-     */
-    function padString(str, length, padChar) {
-        str = String(str);
-        while (str.length < length) {
-            str = padChar + str;
-        }
-        return str;
-    }
-
-    /**
-     * Helper function to get field with proper alias based on record type
-     * @param {string} fieldName - Field name
-     * @param {string} alias - Table alias
-     * @param {string} mainTable - Main table name
-     * @returns {string} Field with proper alias
-     */
-    function getFieldWithAlias(fieldName, alias, mainTable) {
-        // Special handling for transaction table with TransactionLine joins
-        if (mainTable.toLowerCase() === 'transaction') {
-            // Fields that are in TransactionLine (mainline) - validated fields only
-            const transactionLineFields = ['amount', 'netamount', 'foreignamount', 'rate', 'quantity', 'location', 'subsidiary', 'department', 'class'];
-            
-            // Map 'amount' to 'netamount' in TransactionLine
-            if (fieldName === 'amount') {
-                return 'tl.netamount';
-            }
-            
-            // Check if field belongs to TransactionLine
-            if (transactionLineFields.indexOf(fieldName) !== -1) {
-                return 'tl.' + fieldName;
-            }
-            
-            // Map transaction table fields with correct names
-            if (fieldName === 'createddate') {
-                return alias + '.datecreated';
-            }
-            
-            // Default to main transaction table
-            return alias + '.' + fieldName;
-        }
-        
-        // Default behavior for other record types
-        return alias + '.' + fieldName;
-    }
-
-    /**
-     * Enhanced date formatting with multiple format support
-     * @param {string} dateStr - Date string to format
-     * @returns {string} Formatted date string
+     * Format date string for NetSuite
      */
     function formatDateString(dateStr) {
         if (!dateStr) return null;
@@ -382,13 +346,12 @@ define(['N/query', 'N/format', 'N/log'], function (query, format, log) {
             if (dateStr.indexOf('/') !== -1 && dateStr.split('/').length === 3) {
                 parts = dateStr.split('/');
                 if (parts[2].length === 4) {
-                    const month = padString(parts[0], 2, '0');
-                    const day = padString(parts[1], 2, '0');
+                    const month = parts[0].padStart(2, '0');
+                    const day = parts[1].padStart(2, '0');
                     return parts[2] + '-' + month + '-' + day;
                 }
             }
             
-            // Return as-is if no pattern matches
             return dateStr;
         } catch (e) {
             return dateStr;
@@ -396,142 +359,56 @@ define(['N/query', 'N/format', 'N/log'], function (query, format, log) {
     }
 
     /**
-     * Enhanced dynamic SQL builder with intelligent filtering
-     * @param {Object} config - Configuration object
-     * @param {Object} filters - Filter criteria
-     * @param {Object} options - Additional options
-     * @returns {Object} SQL query and parameters
+     * Build SQL query from generic filters
      */
-    function buildDynamicSQL(config, filters, options) {
-        options = options || {};
-        const mainTable = config.mainTable;
-        const alias = config.alias;
-        const fields = config.fields || [alias + '.*'];
-        const joins = config.joins || [];
-
+    function buildSQL(recordType, filters, fields, options) {
+        const baseTable = getBaseTable(recordType);
+        const alias = generateAlias(recordType);
+        
         // Build SELECT clause
-        let sql = 'SELECT ' + fields.join(', ');
-        
-        // Build FROM clause
-        sql += ' FROM ' + mainTable + ' AS ' + alias;
-        
-        // Add JOINs
-        if (joins.length > 0) {
-            sql += ' ' + joins.join(' ');
+        let selectFields;
+        if (fields && Array.isArray(fields) && fields.length > 0) {
+            selectFields = fields.map(field => {
+                if (field.indexOf('.') === -1 && field.indexOf('(') === -1) {
+                    return alias + '.' + field;
+                }
+                return field;
+            });
+        } else {
+            selectFields = [alias + '.*'];
         }
-
-        // Build WHERE clause
+        
+        let sql = 'SELECT ' + selectFields.join(', ');
+        sql += ' FROM ' + baseTable + ' AS ' + alias;
+        
+        // Build WHERE clause from filters
         const whereClauses = [];
         let params = [];
-
-        // Process filters dynamically
-        if (filters && typeof filters === 'object' && Object.keys(filters).length > 0) {
-            Object.keys(filters).forEach(function(key) {
-                const value = filters[key];
-                
-                // Skip if value is null, undefined, or empty string
-                if (value === null || value === undefined || value === '') {
-                    return;
-                }
-
-                // Handle date range filters
-                if (key.slice(-10) === '_startdate' && filters[key.replace('_startdate', '_enddate')]) {
-                    const baseField = key.replace('_startdate', '');
-                    const baseFieldWithAlias = getFieldWithAlias(baseField, alias, mainTable);
-                    const startDate = formatDateString(value);
-                    const endDate = formatDateString(filters[key.replace('_startdate', '_enddate')]);
-                    
-                    whereClauses.push(
-                        '(' + baseFieldWithAlias + ' >= TO_DATE(?, \'YYYY-MM-DD\') AND ' +
-                        baseFieldWithAlias + ' <= TO_DATE(?, \'YYYY-MM-DD\'))'
-                    );
-                    params.push(startDate);
-                    params.push(endDate);
-                } else if (key.slice(-8) === '_enddate') {
-                    // Skip enddate as it's handled with startdate
-                    return;
-                } else if (key === 'startdate' && filters.enddate) {
-                    // Legacy date range support for revenue plans
-                    const fStart = formatDateString(value);
-                    const fEnd = formatDateString(filters.enddate);
-                    whereClauses.push(
-                        '(' + alias + '.revrecstartdate >= TO_DATE(?, \'YYYY-MM-DD\') AND ' +
-                        alias + '.revrecstartdate <= TO_DATE(?, \'YYYY-MM-DD\'))'
-                    );
-                    params.push(fStart);
-                    params.push(fEnd);
-                } else if (key === 'enddate') {
-                    // Skip if startdate exists
-                    if (!filters.startdate) {
-                        const fEndOnly = formatDateString(value);
-                        whereClauses.push(alias + '.revrecstartdate <= TO_DATE(?, \'YYYY-MM-DD\')');
-                        params.push(fEndOnly);
-                    }
-                } else if (key === 'plantype') {
-                    // Special handling for plantype
-                    whereClauses.push(alias + '.revenueplantype = ?');
-                    params.push(value.toString().toUpperCase());
-                } else if (Array.isArray(value)) {
-                    // Handle IN clauses
-                    if (value.length > 0) {
-                        const fieldWithAlias = getFieldWithAlias(key, alias, mainTable);
-                        const placeholders = value.map(function() { return '?'; }).join(',');
-                        whereClauses.push(fieldWithAlias + ' IN (' + placeholders + ')');
-                        params = params.concat(value);
-                    }
-                } else if (typeof value === 'object' && value.operator) {
-                    // Handle custom operators
-                    const operator = value.operator.toUpperCase();
-                    const fieldWithAlias = getFieldWithAlias(key, alias, mainTable);
-                    
-                    // Operators that don't need values (NULL operators)
-                    const nullOperators = ['IS NULL', 'IS NOT NULL'];
-                    if (nullOperators.indexOf(operator) !== -1) {
-                        whereClauses.push(fieldWithAlias + ' ' + operator);
-                        // No parameter needed for NULL operators
-                    } else if (value.value !== undefined) {
-                        // Operators that need values
-                        const validOperators = ['=', '!=', '<>', '>', '<', '>=', '<=', 'LIKE', 'NOT LIKE'];
-                        if (validOperators.indexOf(operator) !== -1) {
-                            whereClauses.push(fieldWithAlias + ' ' + operator + ' ?');
-                            params.push(value.value);
-                        }
-                    }
-                } else if (typeof value === 'boolean') {
-                    // Handle boolean values
-                    const fieldWithAlias = getFieldWithAlias(key, alias, mainTable);
-                    whereClauses.push(fieldWithAlias + ' = ?');
-                    params.push(value ? 'T' : 'F');
-                } else {
-                    // Simple equality
-                    const fieldWithAlias = getFieldWithAlias(key, alias, mainTable);
-                    whereClauses.push(fieldWithAlias + ' = ?');
-                    params.push(value);
+        
+        if (filters && Array.isArray(filters) && filters.length > 0) {
+            filters.forEach(filter => {
+                const result = processFilter(filter, alias);
+                if (result) {
+                    whereClauses.push(result.condition);
+                    params = params.concat(result.params);
                 }
             });
         }
-
-        // Add WHERE clause if conditions exist
+        
         if (whereClauses.length > 0) {
             sql += ' WHERE ' + whereClauses.join(' AND ');
         }
-
-        // Add ORDER BY for consistency
-        if (sql.toLowerCase().indexOf('order by') === -1) {
-            sql += ' ORDER BY ' + alias + '.id';
-        }
-
+        
+        // Add ORDER BY
+        sql += ' ORDER BY ' + alias + '.id';
+        
         return { sql: sql, params: params };
     }
 
     /**
-     * Enhanced query execution with error handling
-     * @param {Object} config - Configuration object
-     * @param {Object} filters - Filter criteria
-     * @param {Object} options - Query options
-     * @returns {Object} Query results
+     * Execute query with generic filters
      */
-    function executeQuery(config, filters, options) {
+    function executeQuery(recordType, filters, fields, options) {
         options = options || {};
         const pageSize = options.pageSize || 5000;
         const pageIndex = options.pageIndex || 0;
@@ -539,38 +416,35 @@ define(['N/query', 'N/format', 'N/log'], function (query, format, log) {
         const debug = options.debug || false;
 
         try {
-            const sqlResult = buildDynamicSQL(config, filters, options);
+            const sqlResult = buildSQL(recordType, filters, fields, options);
             
             if (debug) {
                 log.debug('Generated SQL', sqlResult.sql);
                 log.debug('Parameters', sqlResult.params);
             }
             
-            // Execute query with pagination
+            // Execute query
             const pagedData = query.runSuiteQLPaged({
                 query: sqlResult.sql,
                 params: sqlResult.params,
-                pageSize: Math.min(pageSize, 5000) // NetSuite max
+                pageSize: Math.min(pageSize, 5000)
             });
 
-            // Fetch results with proper pagination
+            // Fetch results
             let results = [];
             let totalRecords = 0;
             
             if (pagedData.pageRanges && pagedData.pageRanges.length > 0) {
                 if (usePagination) {
-                    // Use NetSuite's built-in pagination efficiently
                     if (pageIndex < pagedData.pageRanges.length) {
                         const targetPage = pagedData.fetch({ index: pageIndex });
                         results = targetPage.data.asMappedResults();
                     }
-                    // Get total record count from all pages
-                    totalRecords = pagedData.pageRanges.reduce(function(total, pageRange) {
+                    totalRecords = pagedData.pageRanges.reduce((total, pageRange) => {
                         return total + pageRange.size;
                     }, 0);
                 } else {
-                    // Fetch all results when pagination is not requested
-                    pagedData.pageRanges.forEach(function (pageRange) {
+                    pagedData.pageRanges.forEach(pageRange => {
                         const onePage = pagedData.fetch({ index: pageRange.index });
                         const mappedResults = onePage.data.asMappedResults();
                         results = results.concat(mappedResults);
@@ -579,17 +453,12 @@ define(['N/query', 'N/format', 'N/log'], function (query, format, log) {
                 }
             }
 
-            // Apply statistics calculation if enabled
-            if (config.enableStats && config.statsConfig) {
-                results = calculateRecognitionStats(results, config.statsConfig);
-            }
-
             // Build response
             const response = {
                 success: true,
                 data: results,
                 recordCount: results.length,
-                recordType: config.mainTable
+                recordType: recordType
             };
 
             if (usePagination) {
@@ -607,8 +476,8 @@ define(['N/query', 'N/format', 'N/log'], function (query, format, log) {
                 response.debug = {
                     sql: sqlResult.sql,
                     params: sqlResult.params,
-                    config: config,
-                    recordCategory: getRecordCategory(config.mainTable),
+                    baseTable: getBaseTable(recordType),
+                    alias: generateAlias(recordType),
                     executionInfo: {
                         pageSize: pageSize,
                         pageIndex: pageIndex,
@@ -625,10 +494,10 @@ define(['N/query', 'N/format', 'N/log'], function (query, format, log) {
             return {
                 success: false,
                 error: 'Query execution failed: ' + (e.message || e.toString()),
-                recordType: config.mainTable,
+                recordType: recordType,
                 debug: debug ? {
-                    config: config,
                     filters: filters,
+                    fields: fields,
                     options: options,
                     errorDetails: e
                 } : undefined
@@ -638,13 +507,26 @@ define(['N/query', 'N/format', 'N/log'], function (query, format, log) {
 
     /**
      * GET handler (backward compatibility)
-     * @param {Object} context - Request context
-     * @returns {Object} Response data
      */
     function getHandler(context) {
         try {
-            // Return revenue plan data for backward compatibility
-            return executeQuery(REVENUE_PLAN_CONFIG, {}, {});
+            return {
+                success: true,
+                message: 'Generic NetSuite RESTlet v2.0',
+                supportedOperators: Object.keys(OPERATORS),
+                example: {
+                    recordType: 'customer',
+                    filters: [
+                        {
+                            field_name: 'isinactive',
+                            operator: 'equals',
+                            value: 'F'
+                        }
+                    ],
+                    fields: ['id', 'entityid', 'companyname'],
+                    pageSize: 5
+                }
+            };
         } catch (e) {
             return { 
                 success: false, 
@@ -654,9 +536,7 @@ define(['N/query', 'N/format', 'N/log'], function (query, format, log) {
     }
 
     /**
-     * Enhanced POST handler with comprehensive dynamic support
-     * @param {Object} context - Request context
-     * @returns {Object} Response data
+     * POST handler with generic filter structure
      */
     function postHandler(context) {
         try {
@@ -672,9 +552,9 @@ define(['N/query', 'N/format', 'N/log'], function (query, format, log) {
             }
 
             // Extract parameters
-            const recordType = context.recordType || 'revenueplan'; // Default for backward compatibility
-            const filters = context.filters || {};
-            const customFields = context.fields || null;
+            const recordType = context.recordType;
+            const filters = context.filters || [];
+            const fields = context.fields || null;
             const options = {
                 pageSize: context.pageSize || 5000,
                 pageIndex: context.pageIndex || 0,
@@ -682,33 +562,29 @@ define(['N/query', 'N/format', 'N/log'], function (query, format, log) {
                 debug: context.debug || false
             };
 
-            // Handle legacy mode (extract filters from context root)
-            if (!context.recordType && !context.filters) {
-                const legacyKeys = ['id', 'recordnumber', 'createdfrom', 'startdate', 'enddate', 
-                                'lastmodifieddate_startdate', 'lastmodifieddate_enddate', 'plantype'];
-                
-                legacyKeys.forEach(function(key) {
-                    if (context[key] !== undefined && context[key] !== null && context[key] !== '') {
-                        filters[key] = context[key];
+            if (!recordType) {
+                return {
+                    success: false,
+                    error: 'recordType is required',
+                    example: {
+                        recordType: 'customer',
+                        filters: [
+                            {
+                                field_name: 'isinactive',
+                                operator: 'equals',
+                                value: 'F'
+                            }
+                        ],
+                        fields: ['id', 'entityid', 'companyname'],
+                        pageSize: 5
                     }
-                });
-            }
-
-            // Create configuration
-            let config;
-            if (context.config) {
-                // Custom configuration provided
-                config = context.config;
-            } else {
-                // Generate dynamic configuration
-                config = createDynamicConfig(recordType, customFields);
+                };
             }
 
             // Execute query
-            const result = executeQuery(config, filters, options);
+            const result = executeQuery(recordType, filters, fields, options);
 
             // Add metadata
-            result.recordCategory = getRecordCategory(recordType);
             result.timestamp = new Date().toISOString();
             result.version = '2.0.0';
 
@@ -733,4 +609,4 @@ define(['N/query', 'N/format', 'N/log'], function (query, format, log) {
         get: getHandler,
         post: postHandler
     };
-}); 
+});

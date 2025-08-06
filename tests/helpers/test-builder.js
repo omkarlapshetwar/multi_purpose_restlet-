@@ -4,6 +4,7 @@ const config = require('../../src/config/netsuite-config');
 /**
  * Test Builder Helper
  * Creates standardized test cases for NetSuite RESTlet testing
+ * Updated to support new filter structure: { field_name, operator, value }
  */
 class TestBuilder {
     constructor() {
@@ -11,9 +12,64 @@ class TestBuilder {
     }
 
     /**
-     * Create a standardized test case
+     * Convert old filter format to new format
+     * @param {Object} oldFilters - Old filter format
+     * @returns {Array} New filter format array
+     */
+    convertToNewFilterFormat(oldFilters) {
+        const newFilters = [];
+        
+        for (const [fieldName, value] of Object.entries(oldFilters)) {
+            if (value === null || value === undefined) {
+                continue; // Skip null/undefined values
+            }
+            
+            if (typeof value === 'object' && value.operator) {
+                // Already in new format
+                newFilters.push({
+                    field_name: fieldName,
+                    operator: value.operator,
+                    value: value.value,
+                    values: value.values,
+                    startdate: value.startdate,
+                    enddate: value.enddate
+                });
+            } else if (Array.isArray(value)) {
+                // Array values (IN operator)
+                if (value.length > 0) {
+                    newFilters.push({
+                        field_name: fieldName,
+                        operator: 'in',
+                        values: value
+                    });
+                }
+            } else if (typeof value === 'boolean') {
+                // Boolean values
+                newFilters.push({
+                    field_name: fieldName,
+                    operator: value ? 'is_true' : 'is_false',
+                    value: value
+                });
+            } else if (typeof value === 'string' && value.includes('_startdate') || value.includes('_enddate')) {
+                // Skip date range fields, they'll be handled separately
+                continue;
+            } else {
+                // Simple equals
+                newFilters.push({
+                    field_name: fieldName,
+                    operator: 'equals',
+                    value: value
+                });
+            }
+        }
+        
+        return newFilters;
+    }
+
+    /**
+     * Create a standardized test case with new filter format
      * @param {string} recordType - NetSuite record type
-     * @param {Object} filters - Filter criteria
+     * @param {Object} filters - Filter criteria (old format for backward compatibility)
      * @param {Object} options - Test options
      * @returns {Object} Test case object
      */
@@ -31,9 +87,12 @@ class TestBuilder {
             description = null
         } = options;
 
+        // Convert filters to new format
+        const newFilters = this.convertToNewFilterFormat(filters);
+
         return {
             recordType: recordType,
-            filters: filters,
+            filters: newFilters,
             fields: fields,
             pageSize: pageSize,
             pageIndex: pageIndex,
@@ -45,7 +104,7 @@ class TestBuilder {
                 expectedMinRecords: expectedMinRecords,
                 expectedMaxRecords: expectedMaxRecords,
                 shouldSucceed: shouldSucceed,
-                description: description || `${recordType} test with ${Object.keys(filters).length} filters`,
+                description: description || `${recordType} test with ${newFilters.length} filters`,
                 created: new Date().toISOString()
             }
         };
@@ -191,7 +250,7 @@ class TestBuilder {
     }
 
     /**
-     * Create a date range test case
+     * Create a date range test case with new filter format
      * @param {string} recordType - Record type
      * @param {string} dateField - Date field name
      * @param {string} startDate - Start date (DD-MM-YYYY)
@@ -200,19 +259,38 @@ class TestBuilder {
      * @returns {Object} Date range test case
      */
     createDateRangeTest(recordType, dateField, startDate, endDate, additionalFilters = {}) {
-        const filters = {
-            [`${dateField}_startdate`]: startDate,
-            [`${dateField}_enddate`]: endDate,
-            ...additionalFilters
-        };
-
-        return this.createTest(recordType, filters, {
-            description: `Date range test for ${recordType} (${dateField}: ${startDate} to ${endDate})`
+        // Convert additional filters to new format
+        const newAdditionalFilters = this.convertToNewFilterFormat(additionalFilters);
+        
+        // Add date range filter
+        newAdditionalFilters.push({
+            field_name: dateField,
+            operator: 'date_range',
+            startdate: startDate,
+            enddate: endDate
         });
+
+        return {
+            recordType: recordType,
+            filters: newAdditionalFilters,
+            fields: null,
+            pageSize: this.testConfig.defaultPageSize,
+            pageIndex: 0,
+            usePagination: false,
+            debug: this.testConfig.enableDebugLogs,
+            testMetadata: {
+                timeout: this.testConfig.timeout,
+                expectedMinRecords: 0,
+                expectedMaxRecords: null,
+                shouldSucceed: true,
+                description: `Date range test for ${recordType} (${dateField}: ${startDate} to ${endDate})`,
+                created: new Date().toISOString()
+            }
+        };
     }
 
     /**
-     * Create an array filter test case
+     * Create an array filter test case with new format
      * @param {string} recordType - Record type
      * @param {string} fieldName - Field to filter on
      * @param {Array} values - Array of values
@@ -220,18 +298,37 @@ class TestBuilder {
      * @returns {Object} Array filter test case
      */
     createArrayFilterTest(recordType, fieldName, values, additionalFilters = {}) {
-        const filters = {
-            [fieldName]: values,
-            ...additionalFilters
-        };
-
-        return this.createTest(recordType, filters, {
-            description: `Array filter test for ${recordType} (${fieldName} IN [${values.join(', ')}])`
+        // Convert additional filters to new format
+        const newAdditionalFilters = this.convertToNewFilterFormat(additionalFilters);
+        
+        // Add array filter
+        newAdditionalFilters.push({
+            field_name: fieldName,
+            operator: 'in',
+            values: values
         });
+
+        return {
+            recordType: recordType,
+            filters: newAdditionalFilters,
+            fields: null,
+            pageSize: this.testConfig.defaultPageSize,
+            pageIndex: 0,
+            usePagination: false,
+            debug: this.testConfig.enableDebugLogs,
+            testMetadata: {
+                timeout: this.testConfig.timeout,
+                expectedMinRecords: 0,
+                expectedMaxRecords: null,
+                shouldSucceed: true,
+                description: `Array filter test for ${recordType} (${fieldName} IN [${values.join(', ')}])`,
+                created: new Date().toISOString()
+            }
+        };
     }
 
     /**
-     * Create a custom operator test case
+     * Create a custom operator test case with new format
      * @param {string} recordType - Record type
      * @param {string} fieldName - Field name
      * @param {string} operator - Operator (>=, <=, LIKE, etc.)
@@ -240,36 +337,86 @@ class TestBuilder {
      * @returns {Object} Custom operator test case
      */
     createCustomOperatorTest(recordType, fieldName, operator, value, additionalFilters = {}) {
-        const filters = {
-            [fieldName]: {
-                operator: operator,
-                value: value
-            },
-            ...additionalFilters
+        // Convert additional filters to new format
+        const newAdditionalFilters = this.convertToNewFilterFormat(additionalFilters);
+        
+        // Map old operators to new format
+        const operatorMap = {
+            '>=': 'greater_than_or_equal',
+            '<=': 'less_than_or_equal',
+            '>': 'greater_than',
+            '<': 'less_than',
+            '!=': 'not_equals',
+            'LIKE': 'contains',
+            'NOT LIKE': 'not_contains'
         };
-
-        return this.createTest(recordType, filters, {
-            description: `Custom operator test for ${recordType} (${fieldName} ${operator} ${value})`
+        
+        const newOperator = operatorMap[operator] || operator;
+        
+        // Add custom operator filter
+        newAdditionalFilters.push({
+            field_name: fieldName,
+            operator: newOperator,
+            value: value
         });
+
+        return {
+            recordType: recordType,
+            filters: newAdditionalFilters,
+            fields: null,
+            pageSize: this.testConfig.defaultPageSize,
+            pageIndex: 0,
+            usePagination: false,
+            debug: this.testConfig.enableDebugLogs,
+            testMetadata: {
+                timeout: this.testConfig.timeout,
+                expectedMinRecords: 0,
+                expectedMaxRecords: null,
+                shouldSucceed: true,
+                description: `Custom operator test for ${recordType} (${fieldName} ${operator} ${value})`,
+                created: new Date().toISOString()
+            }
+        };
     }
 
     /**
-     * Create a boolean filter test case
+     * Create a boolean filter test case with new format
      * @param {string} recordType - Record type
      * @param {Object} booleanFilters - Boolean filters (field: true/false)
      * @param {Object} additionalFilters - Additional filters
      * @returns {Object} Boolean filter test case
      */
     createBooleanFilterTest(recordType, booleanFilters, additionalFilters = {}) {
-        const filters = {
-            ...booleanFilters,
-            ...additionalFilters
-        };
+        // Convert additional filters to new format
+        const newAdditionalFilters = this.convertToNewFilterFormat(additionalFilters);
+        
+        // Add boolean filters
+        for (const [fieldName, value] of Object.entries(booleanFilters)) {
+            newAdditionalFilters.push({
+                field_name: fieldName,
+                operator: value ? 'is_true' : 'is_false',
+                value: value
+            });
+        }
 
         const booleanFields = Object.keys(booleanFilters).join(', ');
-        return this.createTest(recordType, filters, {
-            description: `Boolean filter test for ${recordType} (${booleanFields})`
-        });
+        return {
+            recordType: recordType,
+            filters: newAdditionalFilters,
+            fields: null,
+            pageSize: this.testConfig.defaultPageSize,
+            pageIndex: 0,
+            usePagination: false,
+            debug: this.testConfig.enableDebugLogs,
+            testMetadata: {
+                timeout: this.testConfig.timeout,
+                expectedMinRecords: 0,
+                expectedMaxRecords: null,
+                shouldSucceed: true,
+                description: `Boolean filter test for ${recordType} (${booleanFields})`,
+                created: new Date().toISOString()
+            }
+        };
     }
 
     /**
@@ -279,7 +426,7 @@ class TestBuilder {
      * @returns {Object} Edge case test
      */
     createEdgeCaseTest(recordType, edgeCaseType) {
-        let filters = {};
+        let filters = [];
         let options = {
             shouldSucceed: true,
             description: `Edge case test: ${edgeCaseType} for ${recordType}`
@@ -287,25 +434,47 @@ class TestBuilder {
 
         switch (edgeCaseType) {
             case 'empty_filters':
-                filters = {};
+                filters = [];
                 break;
             case 'null_values':
-                filters = { id: null, entityid: null };
+                filters = [
+                    { field_name: 'id', operator: 'is_null', value: null },
+                    { field_name: 'entityid', operator: 'is_null', value: null }
+                ];
                 options.shouldSucceed = true; // Should filter out nulls
                 break;
             case 'empty_strings':
-                filters = { entityid: '', companyname: '' };
+                filters = [
+                    { field_name: 'entityid', operator: 'equals', value: '' },
+                    { field_name: 'companyname', operator: 'equals', value: '' }
+                ];
                 options.shouldSucceed = true; // Should filter out empty strings
                 break;
             case 'large_page_size':
-                filters = { isinactive: 'F' };
+                filters = [{ field_name: 'isinactive', operator: 'equals', value: 'F' }];
                 options.pageSize = 1000;
                 break;
             default:
                 throw new Error(`Unknown edge case type: ${edgeCaseType}`);
         }
 
-        return this.createTest(recordType, filters, options);
+        return {
+            recordType: recordType,
+            filters: filters,
+            fields: null,
+            pageSize: options.pageSize || this.testConfig.defaultPageSize,
+            pageIndex: 0,
+            usePagination: false,
+            debug: this.testConfig.enableDebugLogs,
+            testMetadata: {
+                timeout: this.testConfig.timeout,
+                expectedMinRecords: 0,
+                expectedMaxRecords: null,
+                shouldSucceed: options.shouldSucceed,
+                description: options.description,
+                created: new Date().toISOString()
+            }
+        };
     }
 
     /**

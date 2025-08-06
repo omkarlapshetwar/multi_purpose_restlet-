@@ -13,6 +13,8 @@ const BasicTestSuite = require('./suites/basic-tests');
 const TransactionTestSuite = require('./suites/transaction-tests');
 const EntityTestSuite = require('./suites/entity-tests');
 const EdgeCaseTestSuite = require('./suites/edge-case-tests');
+const NewFilterTestSuite = require('./suites/new-filter-tests');
+const AdvancedFilterTestSuite = require('./suites/advanced-filter-tests');
 
 /**
  * Main Test Runner for NetSuite RESTlet
@@ -86,11 +88,13 @@ ${colors.yellow('Usage:')}
   npm run test:transactions        Run transaction tests
   npm run test:entities           Run entity tests (customer, employee, vendor)
   npm run test:edge-cases         Run edge case tests
+  npm run test:new-filters        Run new filter structure tests
+  npm run test:advanced-filters   Run advanced filter pattern tests
   npm run test:single             Run a single quick test
   npm run test:health             Run health check only
 
 ${colors.yellow('Options:')}
-  --suite=<name>        Run specific test suite (basic|transactions|entities|edge-cases|all)
+  --suite=<name>        Run specific test suite (basic|transactions|entities|edge-cases|new-filters|advanced-filters|all)
   --single              Run only a quick single test
   --verbose, -v         Enable verbose output
   --bail, -b            Stop on first failure
@@ -98,11 +102,20 @@ ${colors.yellow('Options:')}
   --delay=<ms>          Set delay between requests (default: 1000)
   --help, -h            Show this help
 
+${colors.yellow('Test Suites:')}
+  basic                 Basic connectivity and functionality tests
+  transactions          Transaction-specific tests with field mapping
+  entities              Entity record tests (customers, employees, vendors)
+  edge-cases            Boundary conditions and error scenarios
+  new-filters           New filter structure and operator tests
+  advanced-filters      Advanced filter patterns and business logic tests
+  all                   Run all test suites (default)
+
 ${colors.yellow('Examples:')}
-  node tests/test-runner.js --suite=basic --verbose
-  node tests/test-runner.js --single
-  node tests/test-runner.js --suite=transactions --bail
-        `);
+  npm test -- --suite=basic
+  npm test -- --suite=advanced-filters --verbose
+  npm test -- --single --timeout=60000
+`);
     }
 
     /**
@@ -365,12 +378,20 @@ ${'='.repeat(60)}`);
                     case 'edge-cases':
                         await this.runTestSuite(new EdgeCaseTestSuite(), 'Edge Case Tests', options);
                         break;
+                    case 'new-filters':
+                        await this.runTestSuite(new NewFilterTestSuite(), 'New Filter Tests', options);
+                        break;
+                    case 'advanced-filters':
+                        await this.runTestSuite(new AdvancedFilterTestSuite(), 'Advanced Filter Tests', options);
+                        break;
                     case 'all':
                     default:
                         await this.runTestSuite(new BasicTestSuite(), 'Basic Tests', options);
                         await this.runTestSuite(new EntityTestSuite(), 'Entity Tests', options);
                         await this.runTestSuite(new TransactionTestSuite(), 'Transaction Tests', options);
                         await this.runTestSuite(new EdgeCaseTestSuite(), 'Edge Case Tests', options);
+                        await this.runTestSuite(new NewFilterTestSuite(), 'New Filter Tests', options);
+                        await this.runTestSuite(new AdvancedFilterTestSuite(), 'Advanced Filter Tests', options);
                         break;
                 }
             }

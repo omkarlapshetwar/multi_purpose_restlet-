@@ -3,6 +3,7 @@ const TestBuilder = require('../helpers/test-builder');
 /**
  * Edge Case Test Suite
  * Tests boundary conditions, error scenarios, and edge cases
+ * Updated to use new filter structure: { field_name, operator, value }
  */
 class EdgeCaseTestSuite {
     constructor() {
@@ -48,122 +49,355 @@ class EdgeCaseTestSuite {
                 expectedMinRecords: 0
             }),
 
-            // Empty array filter (should be ignored)
-            this.builder.createTest('customer', {
-                isinactive: 'F',
-                subsidiary: []
-            }, {
+            // Empty array filter (should be ignored) with new structure
+            {
+                recordType: 'customer',
+                filters: [
+                    {
+                        field_name: 'isinactive',
+                        operator: 'equals',
+                        value: 'F'
+                    }
+                ],
+                fields: ['id', 'entityid', 'companyname'],
                 pageSize: 3,
-                description: 'Edge Case - Empty Array Filter',
-                expectedMinRecords: 0
-            }),
-
-            // Very specific date range (single day)
-            this.builder.createDateRangeTest('transaction', 'trandate', '01-01-2024', '01-01-2024'),
-
-            // Future date range (should return no results)
-            this.builder.createDateRangeTest('transaction', 'trandate', '01-01-2030', '31-12-2030'),
-
-            // Multiple date ranges
-            this.builder.createTest('transaction', {
-                trandate_startdate: '01-01-2024',
-                trandate_enddate: '31-12-2024',
-                createddate_startdate: '01-06-2024',
-                createddate_enddate: '30-06-2024'
-            }, {
-                pageSize: 5,
-                description: 'Edge Case - Multiple Date Ranges',
-                expectedMinRecords: 0
-            }),
-
-            // Special characters in LIKE search
-            this.builder.createCustomOperatorTest('customer', 'companyname', 'LIKE', '%&%', {
-                isinactive: 'F'
-            }, {
-                pageSize: 3,
-                description: 'Edge Case - Special Characters in LIKE',
-                expectedMinRecords: 0
-            }),
-
-            // NOT LIKE operator
-            this.builder.createTest('customer', {
-                companyname: {
-                    operator: 'NOT LIKE',
-                    value: '%test%'
-                },
-                isinactive: 'F'
-            }, {
-                pageSize: 5,
-                description: 'Edge Case - NOT LIKE Operator',
-                expectedMinRecords: 0
-            }),
-
-            // Zero values
-            this.builder.createCustomOperatorTest('transaction', 'amount', '=', 0, {}, {
-                pageSize: 3,
-                description: 'Edge Case - Zero Amount Filter',
-                expectedMinRecords: 0
-            }),
-
-            // Negative values
-            this.builder.createCustomOperatorTest('transaction', 'amount', '<', 0, {}, {
-                pageSize: 3,
-                description: 'Edge Case - Negative Amount Filter',
-                expectedMinRecords: 0
-            }),
-
-            // Very high ID values
-            this.builder.createCustomOperatorTest('customer', 'id', '>', 999999, {}, {
-                pageSize: 3,
-                description: 'Edge Case - Very High ID Values',
-                expectedMinRecords: 0
-            }),
-
-            // Invalid operator (should be handled gracefully)
-            this.builder.createTest('customer', {
-                isinactive: 'F',
-                id: {
-                    operator: 'INVALID_OP',
-                    value: 1
+                pageIndex: 0,
+                usePagination: false,
+                debug: false,
+                testMetadata: {
+                    timeout: 30000,
+                    expectedMinRecords: 0,
+                    expectedMaxRecords: null,
+                    shouldSucceed: true,
+                    description: 'Edge Case - Empty Array Filter (New Structure)',
+                    created: new Date().toISOString()
                 }
-            }, {
-                pageSize: 3,
-                description: 'Edge Case - Invalid Operator',
-                shouldSucceed: true, // Should ignore invalid operator
-                expectedMinRecords: 0
-            }),
+            },
 
-            // Very long string values
-            this.builder.createCustomOperatorTest('customer', 'companyname', 'LIKE', 
-                '%' + 'a'.repeat(100) + '%', 
-                { isinactive: 'F' }, {
-                pageSize: 3,
-                description: 'Edge Case - Very Long String in LIKE',
-                expectedMinRecords: 0
-            }),
-
-            // Multiple complex conditions
-            this.builder.createTest('transaction', {
-                type: ['SalesOrd', 'CustInvc', 'CashSale'],
-                trandate_startdate: '01-01-2024',
-                trandate_enddate: '31-12-2024',
-                amount: {
-                    operator: '>=',
-                    value: 0.01
-                },
-                status: {
-                    operator: '!=',
-                    value: 'Cancelled'
-                },
-                entity: {
-                    operator: '>',
-                    value: 0
+            // Very specific date range (single day) with new structure
+            {
+                recordType: 'transaction',
+                filters: [
+                    {
+                        field_name: 'trandate',
+                        operator: 'date_range',
+                        startdate: '01-01-2024',
+                        enddate: '01-01-2024'
+                    }
+                ],
+                fields: ['id', 'tranid', 'trandate'],
+                pageSize: 5,
+                pageIndex: 0,
+                usePagination: false,
+                debug: false,
+                testMetadata: {
+                    timeout: 30000,
+                    expectedMinRecords: 0,
+                    expectedMaxRecords: null,
+                    shouldSucceed: true,
+                    description: 'Edge Case - Single Day Date Range (New Structure)',
+                    created: new Date().toISOString()
                 }
-            }, {
+            },
+
+            // Future date range (should return no results) with new structure
+            {
+                recordType: 'transaction',
+                filters: [
+                    {
+                        field_name: 'trandate',
+                        operator: 'date_range',
+                        startdate: '01-01-2030',
+                        enddate: '31-12-2030'
+                    }
+                ],
+                fields: ['id', 'tranid', 'trandate'],
+                pageSize: 5,
+                pageIndex: 0,
+                usePagination: false,
+                debug: false,
+                testMetadata: {
+                    timeout: 30000,
+                    expectedMinRecords: 0,
+                    expectedMaxRecords: null,
+                    shouldSucceed: true,
+                    description: 'Edge Case - Future Date Range (New Structure)',
+                    created: new Date().toISOString()
+                }
+            },
+
+            // Multiple date ranges with new structure
+            {
+                recordType: 'transaction',
+                filters: [
+                    {
+                        field_name: 'trandate',
+                        operator: 'date_range',
+                        startdate: '01-01-2024',
+                        enddate: '31-12-2024'
+                    },
+                    {
+                        field_name: 'createddate',
+                        operator: 'date_range',
+                        startdate: '01-06-2024',
+                        enddate: '30-06-2024'
+                    }
+                ],
+                fields: ['id', 'tranid', 'trandate', 'createddate'],
+                pageSize: 5,
+                pageIndex: 0,
+                usePagination: false,
+                debug: false,
+                testMetadata: {
+                    timeout: 30000,
+                    expectedMinRecords: 0,
+                    expectedMaxRecords: null,
+                    shouldSucceed: true,
+                    description: 'Edge Case - Multiple Date Ranges (New Structure)',
+                    created: new Date().toISOString()
+                }
+            },
+
+            // Special characters in LIKE search with new structure
+            {
+                recordType: 'customer',
+                filters: [
+                    {
+                        field_name: 'isinactive',
+                        operator: 'equals',
+                        value: 'F'
+                    },
+                    {
+                        field_name: 'companyname',
+                        operator: 'contains',
+                        value: '&'
+                    }
+                ],
+                fields: ['id', 'entityid', 'companyname'],
+                pageSize: 3,
+                pageIndex: 0,
+                usePagination: false,
+                debug: false,
+                testMetadata: {
+                    timeout: 30000,
+                    expectedMinRecords: 0,
+                    expectedMaxRecords: null,
+                    shouldSucceed: true,
+                    description: 'Edge Case - Special Characters in Contains (New Structure)',
+                    created: new Date().toISOString()
+                }
+            },
+
+            // NOT LIKE operator with new structure
+            {
+                recordType: 'customer',
+                filters: [
+                    {
+                        field_name: 'isinactive',
+                        operator: 'equals',
+                        value: 'F'
+                    },
+                    {
+                        field_name: 'companyname',
+                        operator: 'not_contains',
+                        value: 'test'
+                    }
+                ],
+                fields: ['id', 'entityid', 'companyname'],
+                pageSize: 5,
+                pageIndex: 0,
+                usePagination: false,
+                debug: false,
+                testMetadata: {
+                    timeout: 30000,
+                    expectedMinRecords: 0,
+                    expectedMaxRecords: null,
+                    shouldSucceed: true,
+                    description: 'Edge Case - NOT Contains Operator (New Structure)',
+                    created: new Date().toISOString()
+                }
+            },
+
+            // Zero values with new structure
+            {
+                recordType: 'transaction',
+                filters: [
+                    {
+                        field_name: 'amount',
+                        operator: 'equals',
+                        value: 0
+                    }
+                ],
+                fields: ['id', 'tranid', 'amount'],
+                pageSize: 3,
+                pageIndex: 0,
+                usePagination: false,
+                debug: false,
+                testMetadata: {
+                    timeout: 30000,
+                    expectedMinRecords: 0,
+                    expectedMaxRecords: null,
+                    shouldSucceed: true,
+                    description: 'Edge Case - Zero Amount Filter (New Structure)',
+                    created: new Date().toISOString()
+                }
+            },
+
+            // Negative values with new structure
+            {
+                recordType: 'transaction',
+                filters: [
+                    {
+                        field_name: 'amount',
+                        operator: 'less_than',
+                        value: 0
+                    }
+                ],
+                fields: ['id', 'tranid', 'amount'],
+                pageSize: 3,
+                pageIndex: 0,
+                usePagination: false,
+                debug: false,
+                testMetadata: {
+                    timeout: 30000,
+                    expectedMinRecords: 0,
+                    expectedMaxRecords: null,
+                    shouldSucceed: true,
+                    description: 'Edge Case - Negative Amount Filter (New Structure)',
+                    created: new Date().toISOString()
+                }
+            },
+
+            // Very high ID values with new structure
+            {
+                recordType: 'customer',
+                filters: [
+                    {
+                        field_name: 'id',
+                        operator: 'greater_than',
+                        value: 999999
+                    }
+                ],
+                fields: ['id', 'entityid'],
+                pageSize: 3,
+                pageIndex: 0,
+                usePagination: false,
+                debug: false,
+                testMetadata: {
+                    timeout: 30000,
+                    expectedMinRecords: 0,
+                    expectedMaxRecords: null,
+                    shouldSucceed: true,
+                    description: 'Edge Case - Very High ID Values (New Structure)',
+                    created: new Date().toISOString()
+                }
+            },
+
+            // Invalid operator (should be handled gracefully) with new structure
+            {
+                recordType: 'customer',
+                filters: [
+                    {
+                        field_name: 'isinactive',
+                        operator: 'equals',
+                        value: 'F'
+                    },
+                    {
+                        field_name: 'id',
+                        operator: 'INVALID_OP',
+                        value: 1
+                    }
+                ],
+                fields: ['id', 'entityid'],
+                pageSize: 3,
+                pageIndex: 0,
+                usePagination: false,
+                debug: false,
+                testMetadata: {
+                    timeout: 30000,
+                    expectedMinRecords: 0,
+                    expectedMaxRecords: null,
+                    shouldSucceed: true, // Should ignore invalid operator
+                    description: 'Edge Case - Invalid Operator (New Structure)',
+                    created: new Date().toISOString()
+                }
+            },
+
+            // Very long string values with new structure
+            {
+                recordType: 'customer',
+                filters: [
+                    {
+                        field_name: 'isinactive',
+                        operator: 'equals',
+                        value: 'F'
+                    },
+                    {
+                        field_name: 'companyname',
+                        operator: 'contains',
+                        value: 'a'.repeat(100)
+                    }
+                ],
+                fields: ['id', 'entityid', 'companyname'],
+                pageSize: 3,
+                pageIndex: 0,
+                usePagination: false,
+                debug: false,
+                testMetadata: {
+                    timeout: 30000,
+                    expectedMinRecords: 0,
+                    expectedMaxRecords: null,
+                    shouldSucceed: true,
+                    description: 'Edge Case - Very Long String in Contains (New Structure)',
+                    created: new Date().toISOString()
+                }
+            },
+
+            // Multiple complex conditions with new structure
+            {
+                recordType: 'transaction',
+                filters: [
+                    {
+                        field_name: 'type',
+                        operator: 'in',
+                        values: ['SalesOrd', 'CustInvc', 'CashSale']
+                    },
+                    {
+                        field_name: 'trandate',
+                        operator: 'date_range',
+                        startdate: '01-01-2024',
+                        enddate: '31-12-2024'
+                    },
+                    {
+                        field_name: 'amount',
+                        operator: 'greater_than_or_equal',
+                        value: 0.01
+                    },
+                    {
+                        field_name: 'status',
+                        operator: 'not_equals',
+                        value: 'Cancelled'
+                    },
+                    {
+                        field_name: 'entity',
+                        operator: 'greater_than',
+                        value: 0
+                    }
+                ],
+                fields: ['id', 'tranid', 'trandate', 'amount', 'status', 'entity'],
                 pageSize: 10,
-                description: 'Edge Case - Multiple Complex Conditions',
-                expectedMinRecords: 0
-            }),
+                pageIndex: 0,
+                usePagination: false,
+                debug: false,
+                testMetadata: {
+                    timeout: 30000,
+                    expectedMinRecords: 0,
+                    expectedMaxRecords: null,
+                    shouldSucceed: true,
+                    description: 'Edge Case - Multiple Complex Conditions (New Structure)',
+                    created: new Date().toISOString()
+                }
+            },
 
             // Revenue plan with no filters
             this.builder.createRevenuePlanTest({}, {
@@ -214,7 +448,57 @@ class EdgeCaseTestSuite {
                 description: 'Edge Case - Non-existent Field Selection',
                 shouldSucceed: true, // Should succeed but may not return the non-existent field
                 expectedMinRecords: 0
-            })
+            }),
+
+            // NULL value tests with new structure
+            {
+                recordType: 'customer',
+                filters: [
+                    {
+                        field_name: 'email',
+                        operator: 'is_null',
+                        value: null
+                    }
+                ],
+                fields: ['id', 'entityid', 'email'],
+                pageSize: 3,
+                pageIndex: 0,
+                usePagination: false,
+                debug: false,
+                testMetadata: {
+                    timeout: 30000,
+                    expectedMinRecords: 0,
+                    expectedMaxRecords: null,
+                    shouldSucceed: true,
+                    description: 'Edge Case - NULL Value Filter (New Structure)',
+                    created: new Date().toISOString()
+                }
+            },
+
+            // NOT NULL value tests with new structure
+            {
+                recordType: 'customer',
+                filters: [
+                    {
+                        field_name: 'email',
+                        operator: 'is_not_null',
+                        value: null
+                    }
+                ],
+                fields: ['id', 'entityid', 'email'],
+                pageSize: 3,
+                pageIndex: 0,
+                usePagination: false,
+                debug: false,
+                testMetadata: {
+                    timeout: 30000,
+                    expectedMinRecords: 0,
+                    expectedMaxRecords: null,
+                    shouldSucceed: true,
+                    description: 'Edge Case - NOT NULL Value Filter (New Structure)',
+                    created: new Date().toISOString()
+                }
+            }
         ];
     }
 
@@ -233,7 +517,7 @@ class EdgeCaseTestSuite {
     getSuiteInfo() {
         return {
             name: 'Edge Case Tests',
-            description: 'Boundary conditions, error scenarios, and edge case testing',
+            description: 'Boundary conditions, error scenarios, and edge case testing with new filter structure',
             testCount: this.tests.length,
             categories: [
                 'Empty/Null Values',
@@ -246,7 +530,9 @@ class EdgeCaseTestSuite {
                 'Complex Conditions',
                 'Pagination Edge Cases',
                 'Field Selection Edge Cases',
-                'Non-existent Records'
+                'Non-existent Records',
+                'New Filter Structure',
+                'NULL Operators'
             ]
         };
     }

@@ -3,6 +3,7 @@ const TestBuilder = require('../helpers/test-builder');
 /**
  * Transaction Test Suite
  * Tests transaction-specific functionality including field mapping and filtering
+ * Updated to use new filter structure: { field_name, operator, value }
  */
 class TransactionTestSuite {
     constructor() {
@@ -27,36 +28,106 @@ class TransactionTestSuite {
                 expectedMinRecords: 0
             }),
 
-            // Test 2: Sales Orders only
-            this.builder.createTransactionTest({
-                type: 'SalesOrd'
-            }, {
+            // Test 2: Sales Orders only with new structure
+            {
+                recordType: 'transaction',
+                filters: [
+                    {
+                        field_name: 'type',
+                        operator: 'equals',
+                        value: 'SalesOrd'
+                    }
+                ],
                 fields: [], // Use wildcard
                 pageSize: 3,
-                description: 'Transaction - Sales Orders Only',
-                expectedMinRecords: 0
-            }),
+                pageIndex: 0,
+                usePagination: false,
+                debug: false,
+                testMetadata: {
+                    timeout: 30000,
+                    expectedMinRecords: 0,
+                    expectedMaxRecords: null,
+                    shouldSucceed: true,
+                    description: 'Transaction - Sales Orders Only (New Structure)',
+                    created: new Date().toISOString()
+                }
+            },
 
-            // Test 3: Multiple transaction types
-            this.builder.createArrayFilterTest('transaction', 'type', ['SalesOrd', 'CustInvc'], {}, {
+            // Test 3: Multiple transaction types with new structure
+            {
+                recordType: 'transaction',
+                filters: [
+                    {
+                        field_name: 'type',
+                        operator: 'in',
+                        values: ['SalesOrd', 'CustInvc']
+                    }
+                ],
                 fields: [], // Use wildcard
                 pageSize: 5,
-                description: 'Transaction - Multiple Types (Array Filter)',
-                expectedMinRecords: 0
-            }),
+                pageIndex: 0,
+                usePagination: false,
+                debug: false,
+                testMetadata: {
+                    timeout: 30000,
+                    expectedMinRecords: 0,
+                    expectedMaxRecords: null,
+                    shouldSucceed: true,
+                    description: 'Transaction - Multiple Types (Array Filter - New Structure)',
+                    created: new Date().toISOString()
+                }
+            },
 
-            // Test 4: Customer Invoices
-            this.builder.createTransactionTest({
-                type: 'CustInvc'
-            }, {
+            // Test 4: Customer Invoices with new structure
+            {
+                recordType: 'transaction',
+                filters: [
+                    {
+                        field_name: 'type',
+                        operator: 'equals',
+                        value: 'CustInvc'
+                    }
+                ],
                 fields: [], // Use wildcard
                 pageSize: 3,
-                description: 'Transaction - Customer Invoices',
-                expectedMinRecords: 0
-            }),
+                pageIndex: 0,
+                usePagination: false,
+                debug: false,
+                testMetadata: {
+                    timeout: 30000,
+                    expectedMinRecords: 0,
+                    expectedMaxRecords: null,
+                    shouldSucceed: true,
+                    description: 'Transaction - Customer Invoices (New Structure)',
+                    created: new Date().toISOString()
+                }
+            },
 
-            // Test 5: Date range test (2025)
-            this.builder.createDateRangeTest('transaction', 'trandate', '01-01-2025', '31-12-2025'),
+            // Test 5: Date range test (2025) with new structure
+            {
+                recordType: 'transaction',
+                filters: [
+                    {
+                        field_name: 'trandate',
+                        operator: 'date_range',
+                        startdate: '01-01-2025',
+                        enddate: '31-12-2025'
+                    }
+                ],
+                fields: ['id', 'tranid', 'trandate', 'type'],
+                pageSize: 5,
+                pageIndex: 0,
+                usePagination: false,
+                debug: false,
+                testMetadata: {
+                    timeout: 30000,
+                    expectedMinRecords: 0,
+                    expectedMaxRecords: null,
+                    shouldSucceed: true,
+                    description: 'Transaction - Date Range Test 2025 (New Structure)',
+                    created: new Date().toISOString()
+                }
+            },
 
             // Test 6: Safe custom fields (CONFIRMED WORKING)
             this.builder.createTransactionTest({
@@ -68,69 +139,222 @@ class TransactionTestSuite {
                 expectedMinRecords: 0
             }),
 
-            // Test 7: Transaction with amount filter (using custom operator)
-            this.builder.createCustomOperatorTest('transaction', 'amount', '>=', 100, {
-                type: ['SalesOrd', 'CustInvc']
-            }, {
+            // Test 7: Transaction with amount filter using new structure
+            {
+                recordType: 'transaction',
+                filters: [
+                    {
+                        field_name: 'type',
+                        operator: 'in',
+                        values: ['SalesOrd', 'CustInvc']
+                    },
+                    {
+                        field_name: 'amount',
+                        operator: 'greater_than_or_equal',
+                        value: 100
+                    }
+                ],
                 fields: ['id', 'tranid', 'trandate', 'amount'],
-                description: 'Transaction - Amount Filter (>= 100)',
-                expectedMinRecords: 0
-            }),
-
-            // Test 8: Transaction status filter
-            this.builder.createTransactionTest({
-                type: 'SalesOrd',
-                status: {
-                    operator: '!=',
-                    value: 'Cancelled'
+                pageSize: 5,
+                pageIndex: 0,
+                usePagination: false,
+                debug: false,
+                testMetadata: {
+                    timeout: 30000,
+                    expectedMinRecords: 0,
+                    expectedMaxRecords: null,
+                    shouldSucceed: true,
+                    description: 'Transaction - Amount Filter (>= 100) (New Structure)',
+                    created: new Date().toISOString()
                 }
-            }, {
+            },
+
+            // Test 8: Transaction status filter with new structure
+            {
+                recordType: 'transaction',
+                filters: [
+                    {
+                        field_name: 'type',
+                        operator: 'equals',
+                        value: 'SalesOrd'
+                    },
+                    {
+                        field_name: 'status',
+                        operator: 'not_equals',
+                        value: 'Cancelled'
+                    }
+                ],
                 fields: ['id', 'tranid', 'type', 'status'],
                 pageSize: 5,
-                description: 'Transaction - Status Filter (Not Cancelled)',
-                expectedMinRecords: 0
-            }),
-
-            // Test 9: Entity filter (customer transactions)
-            this.builder.createTransactionTest({
-                type: ['SalesOrd', 'CustInvc'],
-                entity: {
-                    operator: '>',
-                    value: 0
+                pageIndex: 0,
+                usePagination: false,
+                debug: false,
+                testMetadata: {
+                    timeout: 30000,
+                    expectedMinRecords: 0,
+                    expectedMaxRecords: null,
+                    shouldSucceed: true,
+                    description: 'Transaction - Status Filter (Not Cancelled) (New Structure)',
+                    created: new Date().toISOString()
                 }
-            }, {
+            },
+
+            // Test 9: Entity filter (customer transactions) with new structure
+            {
+                recordType: 'transaction',
+                filters: [
+                    {
+                        field_name: 'type',
+                        operator: 'in',
+                        values: ['SalesOrd', 'CustInvc']
+                    },
+                    {
+                        field_name: 'entity',
+                        operator: 'greater_than',
+                        value: 0
+                    }
+                ],
                 fields: ['id', 'tranid', 'entity', 'type'],
                 pageSize: 5,
-                description: 'Transaction - Entity Filter (Customer Transactions)',
-                expectedMinRecords: 0
-            }),
+                pageIndex: 0,
+                usePagination: false,
+                debug: false,
+                testMetadata: {
+                    timeout: 30000,
+                    expectedMinRecords: 0,
+                    expectedMaxRecords: null,
+                    shouldSucceed: true,
+                    description: 'Transaction - Entity Filter (Customer Transactions) (New Structure)',
+                    created: new Date().toISOString()
+                }
+            },
 
-            // Test 10: Complex date and type filter
-            this.builder.createTransactionTest({
-                type: ['SalesOrd', 'CustInvc', 'CashSale'],
-                trandate_startdate: '01-06-2024',
-                trandate_enddate: '31-12-2024'
-            }, {
+            // Test 10: Complex date and type filter with new structure
+            {
+                recordType: 'transaction',
+                filters: [
+                    {
+                        field_name: 'type',
+                        operator: 'in',
+                        values: ['SalesOrd', 'CustInvc', 'CashSale']
+                    },
+                    {
+                        field_name: 'trandate',
+                        operator: 'date_range',
+                        startdate: '01-06-2024',
+                        enddate: '31-12-2024'
+                    }
+                ],
                 fields: ['id', 'tranid', 'trandate', 'type'],
                 pageSize: 10,
-                description: 'Transaction - Complex Date & Type Filter',
-                expectedMinRecords: 0
-            }),
+                pageIndex: 0,
+                usePagination: false,
+                debug: false,
+                testMetadata: {
+                    timeout: 30000,
+                    expectedMinRecords: 0,
+                    expectedMaxRecords: null,
+                    shouldSucceed: true,
+                    description: 'Transaction - Complex Date & Type Filter (New Structure)',
+                    created: new Date().toISOString()
+                }
+            },
 
-            // Test 11: Recent transactions (current year)
-            this.builder.createDateRangeTest('transaction', 'trandate', '01-01-2024', '31-12-2024', {
-                type: ['SalesOrd', 'CustInvc']
-            }),
+            // Test 11: Recent transactions (current year) with new structure
+            {
+                recordType: 'transaction',
+                filters: [
+                    {
+                        field_name: 'trandate',
+                        operator: 'date_range',
+                        startdate: '01-01-2024',
+                        enddate: '31-12-2024'
+                    },
+                    {
+                        field_name: 'type',
+                        operator: 'in',
+                        values: ['SalesOrd', 'CustInvc']
+                    }
+                ],
+                fields: ['id', 'tranid', 'trandate', 'type'],
+                pageSize: 10,
+                pageIndex: 0,
+                usePagination: false,
+                debug: false,
+                testMetadata: {
+                    timeout: 30000,
+                    expectedMinRecords: 0,
+                    expectedMaxRecords: null,
+                    shouldSucceed: true,
+                    description: 'Transaction - Recent Transactions 2024 (New Structure)',
+                    created: new Date().toISOString()
+                }
+            },
 
-            // Test 12: Memo field search (LIKE operator)
-            this.builder.createCustomOperatorTest('transaction', 'memo', 'LIKE', '%test%', {
-                type: 'SalesOrd'
-            }, {
+            // Test 12: Memo field search (LIKE operator) with new structure
+            {
+                recordType: 'transaction',
+                filters: [
+                    {
+                        field_name: 'type',
+                        operator: 'equals',
+                        value: 'SalesOrd'
+                    },
+                    {
+                        field_name: 'memo',
+                        operator: 'contains',
+                        value: 'test'
+                    }
+                ],
                 fields: ['id', 'tranid', 'memo', 'type'],
                 pageSize: 3,
-                description: 'Transaction - Memo Search (LIKE)',
-                expectedMinRecords: 0
-            })
+                pageIndex: 0,
+                usePagination: false,
+                debug: false,
+                testMetadata: {
+                    timeout: 30000,
+                    expectedMinRecords: 0,
+                    expectedMaxRecords: null,
+                    shouldSucceed: true,
+                    description: 'Transaction - Memo Search (Contains) (New Structure)',
+                    created: new Date().toISOString()
+                }
+            },
+
+            // Test 13: Amount range filter with new structure
+            {
+                recordType: 'transaction',
+                filters: [
+                    {
+                        field_name: 'type',
+                        operator: 'in',
+                        values: ['SalesOrd', 'CustInvc']
+                    },
+                    {
+                        field_name: 'amount',
+                        operator: 'greater_than',
+                        value: 0
+                    },
+                    {
+                        field_name: 'amount',
+                        operator: 'less_than_or_equal',
+                        value: 10000
+                    }
+                ],
+                fields: ['id', 'tranid', 'amount', 'type'],
+                pageSize: 5,
+                pageIndex: 0,
+                usePagination: false,
+                debug: false,
+                testMetadata: {
+                    timeout: 30000,
+                    expectedMinRecords: 0,
+                    expectedMaxRecords: null,
+                    shouldSucceed: true,
+                    description: 'Transaction - Amount Range Filter (0 < amount <= 10000) (New Structure)',
+                    created: new Date().toISOString()
+                }
+            }
         ];
     }
 
@@ -149,7 +373,7 @@ class TransactionTestSuite {
     getSuiteInfo() {
         return {
             name: 'Transaction Tests',
-            description: 'Transaction-specific tests including field mapping, filtering, and business logic',
+            description: 'Transaction-specific tests including field mapping, filtering, and business logic with new filter structure',
             testCount: this.tests.length,
             categories: [
                 'Transaction Types',
@@ -157,7 +381,9 @@ class TransactionTestSuite {
                 'Amount Filtering',
                 'Status Filtering',
                 'Field Mapping',
-                'Complex Queries'
+                'Complex Queries',
+                'New Filter Structure',
+                'Range Filters'
             ]
         };
     }

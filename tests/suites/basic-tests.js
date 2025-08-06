@@ -3,6 +3,7 @@ const TestBuilder = require('../helpers/test-builder');
 /**
  * Basic Test Suite
  * Tests fundamental connectivity and basic functionality
+ * Updated to use new filter structure: { field_name, operator, value }
  */
 class BasicTestSuite {
     constructor() {
@@ -56,7 +57,62 @@ class BasicTestSuite {
                 pageSize: 3,
                 description: 'Field Selection Test - Customer',
                 expectedMinRecords: 0
-            })
+            }),
+
+            // Test 7: New filter structure test
+            {
+                recordType: 'customer',
+                filters: [
+                    {
+                        field_name: 'isinactive',
+                        operator: 'equals',
+                        value: 'F'
+                    }
+                ],
+                fields: ['id', 'entityid', 'companyname'],
+                pageSize: 3,
+                pageIndex: 0,
+                usePagination: false,
+                debug: false,
+                testMetadata: {
+                    timeout: 30000,
+                    expectedMinRecords: 0,
+                    expectedMaxRecords: null,
+                    shouldSucceed: true,
+                    description: 'New Filter Structure Test - Customer',
+                    created: new Date().toISOString()
+                }
+            },
+
+            // Test 8: Multiple filters test
+            {
+                recordType: 'customer',
+                filters: [
+                    {
+                        field_name: 'isinactive',
+                        operator: 'equals',
+                        value: 'F'
+                    },
+                    {
+                        field_name: 'isperson',
+                        operator: 'is_false',
+                        value: false
+                    }
+                ],
+                fields: ['id', 'entityid', 'companyname', 'isperson'],
+                pageSize: 5,
+                pageIndex: 0,
+                usePagination: false,
+                debug: false,
+                testMetadata: {
+                    timeout: 30000,
+                    expectedMinRecords: 0,
+                    expectedMaxRecords: null,
+                    shouldSucceed: true,
+                    description: 'Multiple Filters Test - Customer',
+                    created: new Date().toISOString()
+                }
+            }
         ];
     }
 
@@ -75,9 +131,9 @@ class BasicTestSuite {
     getSuiteInfo() {
         return {
             name: 'Basic Tests',
-            description: 'Fundamental connectivity and basic functionality tests',
+            description: 'Fundamental connectivity and basic functionality tests with new filter structure',
             testCount: this.tests.length,
-            categories: ['Connection', 'Health Check', 'Field Selection', 'Pagination']
+            categories: ['Connection', 'Health Check', 'Field Selection', 'Pagination', 'New Filter Structure']
         };
     }
 }

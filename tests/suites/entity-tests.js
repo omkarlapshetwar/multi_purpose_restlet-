@@ -3,6 +3,7 @@ const TestBuilder = require('../helpers/test-builder');
 /**
  * Entity Test Suite
  * Tests entity records (customers, employees, vendors, etc.)
+ * Updated to use new filter structure: { field_name, operator, value }
  */
 class EntityTestSuite {
     constructor() {
@@ -23,17 +24,35 @@ class EntityTestSuite {
                 expectedMinRecords: 0
             }),
 
-            this.builder.createCustomerTest({
-                email: {
-                    operator: '!=',
-                    value: ''
-                }
-            }, {
+            // Customer with email filter using new structure
+            {
+                recordType: 'customer',
+                filters: [
+                    {
+                        field_name: 'isinactive',
+                        operator: 'equals',
+                        value: 'F'
+                    },
+                    {
+                        field_name: 'email',
+                        operator: 'not_equals',
+                        value: ''
+                    }
+                ],
                 fields: ['id', 'entityid', 'companyname', 'email'],
                 pageSize: 3,
-                description: 'Entity - Customers with Email Addresses',
-                expectedMinRecords: 0
-            }),
+                pageIndex: 0,
+                usePagination: false,
+                debug: false,
+                testMetadata: {
+                    timeout: 30000,
+                    expectedMinRecords: 0,
+                    expectedMaxRecords: null,
+                    shouldSucceed: true,
+                    description: 'Entity - Customers with Email Addresses (New Structure)',
+                    created: new Date().toISOString()
+                }
+            },
 
             this.builder.createBooleanFilterTest('customer', {
                 isinactive: false,
@@ -45,14 +64,35 @@ class EntityTestSuite {
                 expectedMinRecords: 0
             }),
 
-            this.builder.createCustomOperatorTest('customer', 'entityid', 'LIKE', '%1%', {
-                isinactive: 'F'
-            }, {
+            // Customer with LIKE operator using new structure
+            {
+                recordType: 'customer',
+                filters: [
+                    {
+                        field_name: 'isinactive',
+                        operator: 'equals',
+                        value: 'F'
+                    },
+                    {
+                        field_name: 'entityid',
+                        operator: 'contains',
+                        value: '1'
+                    }
+                ],
                 fields: ['id', 'entityid', 'companyname'],
                 pageSize: 3,
-                description: 'Entity - Customers with "1" in Entity ID',
-                expectedMinRecords: 0
-            }),
+                pageIndex: 0,
+                usePagination: false,
+                debug: false,
+                testMetadata: {
+                    timeout: 30000,
+                    expectedMinRecords: 0,
+                    expectedMaxRecords: null,
+                    shouldSucceed: true,
+                    description: 'Entity - Customers with "1" in Entity ID (New Structure)',
+                    created: new Date().toISOString()
+                }
+            },
 
             this.builder.createDateRangeTest('customer', 'datecreated', '01-01-2020', '31-12-2024', {
                 isinactive: 'F'
@@ -65,17 +105,35 @@ class EntityTestSuite {
                 expectedMinRecords: 0
             }),
 
-            this.builder.createEmployeeTest({
-                phone: {
-                    operator: '!=',
-                    value: ''
-                }
-            }, {
+            // Employee with phone filter using new structure
+            {
+                recordType: 'employee',
+                filters: [
+                    {
+                        field_name: 'isinactive',
+                        operator: 'equals',
+                        value: 'F'
+                    },
+                    {
+                        field_name: 'phone',
+                        operator: 'not_equals',
+                        value: ''
+                    }
+                ],
                 fields: ['id', 'entityid', 'firstname', 'lastname', 'phone', 'title'],
                 pageSize: 3,
-                description: 'Entity - Employees with Phone Numbers',
-                expectedMinRecords: 0
-            }),
+                pageIndex: 0,
+                usePagination: false,
+                debug: false,
+                testMetadata: {
+                    timeout: 30000,
+                    expectedMinRecords: 0,
+                    expectedMaxRecords: null,
+                    shouldSucceed: true,
+                    description: 'Entity - Employees with Phone Numbers (New Structure)',
+                    created: new Date().toISOString()
+                }
+            },
 
             this.builder.createBooleanFilterTest('employee', {
                 isinactive: false,
@@ -101,17 +159,35 @@ class EntityTestSuite {
                 expectedMinRecords: 0
             }),
 
-            this.builder.createVendorTest({
-                email: {
-                    operator: '!=',
-                    value: ''
-                }
-            }, {
+            // Vendor with email filter using new structure
+            {
+                recordType: 'vendor',
+                filters: [
+                    {
+                        field_name: 'isinactive',
+                        operator: 'equals',
+                        value: 'F'
+                    },
+                    {
+                        field_name: 'email',
+                        operator: 'not_equals',
+                        value: ''
+                    }
+                ],
                 fields: ['id', 'entityid', 'companyname', 'email'],
                 pageSize: 3,
-                description: 'Entity - Vendors with Email',
-                expectedMinRecords: 0
-            }),
+                pageIndex: 0,
+                usePagination: false,
+                debug: false,
+                testMetadata: {
+                    timeout: 30000,
+                    expectedMinRecords: 0,
+                    expectedMaxRecords: null,
+                    shouldSucceed: true,
+                    description: 'Entity - Vendors with Email (New Structure)',
+                    created: new Date().toISOString()
+                }
+            },
 
             // Contact Tests
             this.builder.createTest('contact', {
@@ -154,7 +230,66 @@ class EntityTestSuite {
                 usePagination: true,
                 description: 'Entity - Large Page Size Test',
                 expectedMinRecords: 0
-            })
+            }),
+
+            // New structure tests for different operators
+            {
+                recordType: 'customer',
+                filters: [
+                    {
+                        field_name: 'isinactive',
+                        operator: 'equals',
+                        value: 'F'
+                    },
+                    {
+                        field_name: 'companyname',
+                        operator: 'starts_with',
+                        value: 'Test'
+                    }
+                ],
+                fields: ['id', 'entityid', 'companyname'],
+                pageSize: 5,
+                pageIndex: 0,
+                usePagination: false,
+                debug: false,
+                testMetadata: {
+                    timeout: 30000,
+                    expectedMinRecords: 0,
+                    expectedMaxRecords: null,
+                    shouldSucceed: true,
+                    description: 'Entity - Customers with Company Name Starting with "Test"',
+                    created: new Date().toISOString()
+                }
+            },
+
+            {
+                recordType: 'customer',
+                filters: [
+                    {
+                        field_name: 'isinactive',
+                        operator: 'equals',
+                        value: 'F'
+                    },
+                    {
+                        field_name: 'email',
+                        operator: 'ends_with',
+                        value: '.com'
+                    }
+                ],
+                fields: ['id', 'entityid', 'companyname', 'email'],
+                pageSize: 3,
+                pageIndex: 0,
+                usePagination: false,
+                debug: false,
+                testMetadata: {
+                    timeout: 30000,
+                    expectedMinRecords: 0,
+                    expectedMaxRecords: null,
+                    shouldSucceed: true,
+                    description: 'Entity - Customers with Email Ending in ".com"',
+                    created: new Date().toISOString()
+                }
+            }
         ];
     }
 
@@ -173,7 +308,7 @@ class EntityTestSuite {
     getSuiteInfo() {
         return {
             name: 'Entity Tests',
-            description: 'Tests for entity records including customers, employees, vendors, contacts, and partners',
+            description: 'Tests for entity records including customers, employees, vendors, contacts, and partners with new filter structure',
             testCount: this.tests.length,
             categories: [
                 'Customer Records',
@@ -185,7 +320,9 @@ class EntityTestSuite {
                 'Boolean Filters',
                 'Email Filters',
                 'Date Filters',
-                'Pagination'
+                'Pagination',
+                'New Filter Structure',
+                'String Operators'
             ]
         };
     }

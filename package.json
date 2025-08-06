@@ -10,6 +10,8 @@
     "test:transactions": "node tests/test-runner.js --suite=transactions",
     "test:entities": "node tests/test-runner.js --suite=entities",
     "test:edge-cases": "node tests/test-runner.js --suite=edge-cases",
+    "test:new-filters": "node tests/test-runner.js --suite=new-filters",
+    "test:advanced-filters": "node tests/test-runner.js --suite=advanced-filters",
     "test:single": "node tests/test-runner.js --single",
     "test:health": "node tests/health-check.js",
     "validate": "node scripts/validate-config.js",
