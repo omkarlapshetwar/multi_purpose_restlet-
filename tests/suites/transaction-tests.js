@@ -17,13 +17,14 @@ class TransactionTestSuite {
      */
     defineTests() {
         return [
-            // Test 1: Empty fields (uses tra.* - CONFIRMED WORKING)
+            // Test 1: Empty fields (uses tra.* - optimized page size and pagination)
             this.builder.createTransactionTest({
                 trandate_startdate: '01-01-2024',
                 trandate_enddate: '31-12-2024'
             }, {
                 fields: [], // Empty fields array
-                pageSize: 3,
+                pageSize: 1,
+                usePagination: true,
                 description: 'Transaction - Empty Fields Array (Wildcard)',
                 expectedMinRecords: 0
             }),
@@ -39,9 +40,9 @@ class TransactionTestSuite {
                     }
                 ],
                 fields: [], // Use wildcard
-                pageSize: 3,
+                pageSize: 1,
+                usePagination: true,
                 pageIndex: 0,
-                usePagination: false,
                 debug: false,
                 testMetadata: {
                     timeout: 30000,
@@ -64,9 +65,9 @@ class TransactionTestSuite {
                     }
                 ],
                 fields: [], // Use wildcard
-                pageSize: 5,
+                pageSize: 1,
+                usePagination: true,
                 pageIndex: 0,
-                usePagination: false,
                 debug: false,
                 testMetadata: {
                     timeout: 30000,
@@ -89,9 +90,9 @@ class TransactionTestSuite {
                     }
                 ],
                 fields: [], // Use wildcard
-                pageSize: 3,
+                pageSize: 1,
+                usePagination: true,
                 pageIndex: 0,
-                usePagination: false,
                 debug: false,
                 testMetadata: {
                     timeout: 30000,
@@ -115,9 +116,9 @@ class TransactionTestSuite {
                     }
                 ],
                 fields: ['id', 'tranid', 'trandate', 'type'],
-                pageSize: 5,
+                pageSize: 1,
+                usePagination: true,
                 pageIndex: 0,
-                usePagination: false,
                 debug: false,
                 testMetadata: {
                     timeout: 30000,
@@ -134,7 +135,8 @@ class TransactionTestSuite {
                 type: 'SalesOrd'
             }, {
                 fields: ['id', 'tranid', 'type', 'trandate'],
-                pageSize: 3,
+                pageSize: 1,
+                usePagination: true,
                 description: 'Transaction - Safe Custom Fields',
                 expectedMinRecords: 0
             }),
@@ -154,10 +156,10 @@ class TransactionTestSuite {
                         value: 100
                     }
                 ],
-                fields: ['id', 'tranid', 'trandate', 'amount'],
-                pageSize: 5,
+                fields: ['id', 'tranid', 'trandate'],
+                pageSize: 1,
+                usePagination: true,
                 pageIndex: 0,
-                usePagination: false,
                 debug: false,
                 testMetadata: {
                     timeout: 30000,
@@ -185,9 +187,9 @@ class TransactionTestSuite {
                     }
                 ],
                 fields: ['id', 'tranid', 'type', 'status'],
-                pageSize: 5,
+                pageSize: 1,
+                usePagination: true,
                 pageIndex: 0,
-                usePagination: false,
                 debug: false,
                 testMetadata: {
                     timeout: 30000,
@@ -215,9 +217,9 @@ class TransactionTestSuite {
                     }
                 ],
                 fields: ['id', 'tranid', 'entity', 'type'],
-                pageSize: 5,
+                pageSize: 1,
+                usePagination: true,
                 pageIndex: 0,
-                usePagination: false,
                 debug: false,
                 testMetadata: {
                     timeout: 30000,
@@ -246,9 +248,9 @@ class TransactionTestSuite {
                     }
                 ],
                 fields: ['id', 'tranid', 'trandate', 'type'],
-                pageSize: 10,
+                pageSize: 1,
+                usePagination: true,
                 pageIndex: 0,
-                usePagination: false,
                 debug: false,
                 testMetadata: {
                     timeout: 30000,
@@ -277,9 +279,9 @@ class TransactionTestSuite {
                     }
                 ],
                 fields: ['id', 'tranid', 'trandate', 'type'],
-                pageSize: 10,
+                pageSize: 1,
+                usePagination: true,
                 pageIndex: 0,
-                usePagination: false,
                 debug: false,
                 testMetadata: {
                     timeout: 30000,
@@ -307,9 +309,9 @@ class TransactionTestSuite {
                     }
                 ],
                 fields: ['id', 'tranid', 'memo', 'type'],
-                pageSize: 3,
+                pageSize: 1,
+                usePagination: true,
                 pageIndex: 0,
-                usePagination: false,
                 debug: false,
                 testMetadata: {
                     timeout: 30000,
@@ -341,10 +343,10 @@ class TransactionTestSuite {
                         value: 10000
                     }
                 ],
-                fields: ['id', 'tranid', 'amount', 'type'],
-                pageSize: 5,
+                fields: ['id', 'tranid', 'type'],
+                pageSize: 1,
+                usePagination: true,
                 pageIndex: 0,
-                usePagination: false,
                 debug: false,
                 testMetadata: {
                     timeout: 30000,

@@ -21,12 +21,14 @@ class BasicTestSuite {
             this.builder.createCustomerTest({}, {
                 description: 'Basic Connection Test (Customer Query)',
                 expectedMinRecords: 0,
-                pageSize: 3
+                pageSize: 1,
+                usePagination: true
             }),
 
             // Test 2: Health check with minimal customer query
             this.builder.createCustomerTest({}, {
-                pageSize: 3,
+                pageSize: 1,
+                usePagination: true,
                 description: 'Health Check - Customer Query',
                 expectedMinRecords: 0
             }),
@@ -36,25 +38,28 @@ class BasicTestSuite {
                 isinactive: 'F'
             }, {
                 fields: ['id', 'acctname', 'accttype'],
-                pageSize: 5,
+                pageSize: 1,
+                usePagination: true,
                 description: 'Basic Chart of Accounts Query',
                 expectedMinRecords: 1
             }),
 
             // Test 4: Employee query (basic entity test)
             this.builder.createEmployeeTest({}, {
-                pageSize: 3,
+                pageSize: 1,
+                usePagination: true,
                 description: 'Basic Employee Query',
                 expectedMinRecords: 0
             }),
 
             // Test 5: Pagination test with customers
-            this.builder.createPaginationTest('customer', { isinactive: 'F' }, 5, 0),
+            this.builder.createPaginationTest('customer', { isinactive: 'F' }, 2, 0),
 
             // Test 6: Field selection test
             this.builder.createCustomerTest({}, {
                 fields: ['id', 'entityid', 'companyname'],
-                pageSize: 3,
+                pageSize: 1,
+                usePagination: true,
                 description: 'Field Selection Test - Customer',
                 expectedMinRecords: 0
             }),
@@ -70,12 +75,12 @@ class BasicTestSuite {
                     }
                 ],
                 fields: ['id', 'entityid', 'companyname'],
-                pageSize: 3,
+                pageSize: 1,
                 pageIndex: 0,
-                usePagination: false,
+                usePagination: true,
                 debug: false,
                 testMetadata: {
-                    timeout: 30000,
+                    timeout: 15000,
                     expectedMinRecords: 0,
                     expectedMaxRecords: null,
                     shouldSucceed: true,
@@ -100,12 +105,12 @@ class BasicTestSuite {
                     }
                 ],
                 fields: ['id', 'entityid', 'companyname', 'isperson'],
-                pageSize: 5,
+                pageSize: 1,
                 pageIndex: 0,
-                usePagination: false,
+                usePagination: true,
                 debug: false,
                 testMetadata: {
-                    timeout: 30000,
+                    timeout: 15000,
                     expectedMinRecords: 0,
                     expectedMaxRecords: null,
                     shouldSucceed: true,

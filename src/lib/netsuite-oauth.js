@@ -129,13 +129,14 @@ class NetSuiteOAuth {
             verbose = config.isDebugEnabled()
         } = options;
 
+        let authHeader;
         try {
             if (verbose) {
                 console.log(`\n🧪 ${colors.cyan('Running')} ${colors.bold(testName)}...`);
                 console.log(`📤 ${colors.yellow('Request Data:')}`, JSON.stringify(data, null, 2));
             }
             
-            const authHeader = this.generateOAuthHeader(method, this.restletConfig.url, data);
+            authHeader = this.generateOAuthHeader(method, this.restletConfig.url, data);
             
             const requestConfig = {
                 method: method,
@@ -146,7 +147,9 @@ class NetSuiteOAuth {
                     'Accept': 'application/json',
                     'User-Agent': 'NetSuite-MultiPurpose-RESTlet/1.0.0'
                 },
-                timeout: timeout
+                timeout: timeout,
+                // Do not rely on proxies/env by default; if needed, users can configure axios separately
+                proxy: false
             };
 
             // Add data for POST requests
@@ -187,12 +190,10 @@ class NetSuiteOAuth {
             enhancedError.originalError = error;
             enhancedError.testName = testName;
             enhancedError.requestData = data;
-            
             if (error.response) {
                 enhancedError.status = error.response.status;
                 enhancedError.responseData = error.response.data;
             }
-            
             throw enhancedError;
         }
     }

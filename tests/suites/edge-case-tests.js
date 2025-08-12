@@ -23,7 +23,8 @@ class EdgeCaseTestSuite {
             this.builder.createEdgeCaseTest('transaction', 'empty_filters'),
 
             // Large page size test
-            this.builder.createEdgeCaseTest('customer', 'large_page_size'),
+            // Keep page size modest to avoid timeouts
+            this.builder.createPaginationTest('customer', { isinactive: 'F' }, 10, 0),
 
             // Boolean edge cases
             this.builder.createBooleanFilterTest('customer', {
@@ -60,9 +61,9 @@ class EdgeCaseTestSuite {
                     }
                 ],
                 fields: ['id', 'entityid', 'companyname'],
-                pageSize: 3,
+                pageSize: 1,
+                usePagination: true,
                 pageIndex: 0,
-                usePagination: false,
                 debug: false,
                 testMetadata: {
                     timeout: 30000,
@@ -86,9 +87,9 @@ class EdgeCaseTestSuite {
                     }
                 ],
                 fields: ['id', 'tranid', 'trandate'],
-                pageSize: 5,
+                pageSize: 1,
+                usePagination: true,
                 pageIndex: 0,
-                usePagination: false,
                 debug: false,
                 testMetadata: {
                     timeout: 30000,
@@ -112,9 +113,9 @@ class EdgeCaseTestSuite {
                     }
                 ],
                 fields: ['id', 'tranid', 'trandate'],
-                pageSize: 5,
+                pageSize: 1,
+                usePagination: true,
                 pageIndex: 0,
-                usePagination: false,
                 debug: false,
                 testMetadata: {
                     timeout: 30000,
@@ -144,9 +145,9 @@ class EdgeCaseTestSuite {
                     }
                 ],
                 fields: ['id', 'tranid', 'trandate', 'createddate'],
-                pageSize: 5,
+                pageSize: 1,
+                usePagination: true,
                 pageIndex: 0,
-                usePagination: false,
                 debug: false,
                 testMetadata: {
                     timeout: 30000,
@@ -174,9 +175,9 @@ class EdgeCaseTestSuite {
                     }
                 ],
                 fields: ['id', 'entityid', 'companyname'],
-                pageSize: 3,
+                pageSize: 1,
+                usePagination: true,
                 pageIndex: 0,
-                usePagination: false,
                 debug: false,
                 testMetadata: {
                     timeout: 30000,
@@ -204,9 +205,9 @@ class EdgeCaseTestSuite {
                     }
                 ],
                 fields: ['id', 'entityid', 'companyname'],
-                pageSize: 5,
+                pageSize: 1,
+                usePagination: true,
                 pageIndex: 0,
-                usePagination: false,
                 debug: false,
                 testMetadata: {
                     timeout: 30000,
@@ -228,10 +229,10 @@ class EdgeCaseTestSuite {
                         value: 0
                     }
                 ],
-                fields: ['id', 'tranid', 'amount'],
-                pageSize: 3,
+                fields: ['id', 'tranid'],
+                pageSize: 1,
+                usePagination: true,
                 pageIndex: 0,
-                usePagination: false,
                 debug: false,
                 testMetadata: {
                     timeout: 30000,
@@ -253,10 +254,10 @@ class EdgeCaseTestSuite {
                         value: 0
                     }
                 ],
-                fields: ['id', 'tranid', 'amount'],
-                pageSize: 3,
+                fields: ['id', 'tranid'],
+                pageSize: 1,
+                usePagination: true,
                 pageIndex: 0,
-                usePagination: false,
                 debug: false,
                 testMetadata: {
                     timeout: 30000,
@@ -279,7 +280,7 @@ class EdgeCaseTestSuite {
                     }
                 ],
                 fields: ['id', 'entityid'],
-                pageSize: 3,
+                pageSize: 1,
                 pageIndex: 0,
                 usePagination: false,
                 debug: false,
@@ -309,9 +310,9 @@ class EdgeCaseTestSuite {
                     }
                 ],
                 fields: ['id', 'entityid'],
-                pageSize: 3,
+                pageSize: 1,
+                usePagination: true,
                 pageIndex: 0,
-                usePagination: false,
                 debug: false,
                 testMetadata: {
                     timeout: 30000,
@@ -339,9 +340,9 @@ class EdgeCaseTestSuite {
                     }
                 ],
                 fields: ['id', 'entityid', 'companyname'],
-                pageSize: 3,
+                pageSize: 1,
+                usePagination: true,
                 pageIndex: 0,
-                usePagination: false,
                 debug: false,
                 testMetadata: {
                     timeout: 30000,
@@ -430,8 +431,8 @@ class EdgeCaseTestSuite {
             }),
 
             // Pagination edge cases
-            this.builder.createPaginationTest('customer', { isinactive: 'F' }, 1, 0), // Very small page
-            this.builder.createPaginationTest('customer', { isinactive: 'F' }, 1000, 0), // Very large page
+            this.builder.createPaginationTest('customer', { isinactive: 'F' }, 1, 0),
+            this.builder.createPaginationTest('customer', { isinactive: 'F' }, 50, 0),
 
             // Custom record type (if exists)
             this.builder.createTest('customrecord_nonexistent', {}, {

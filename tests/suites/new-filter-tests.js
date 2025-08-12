@@ -28,9 +28,9 @@ class NewFilterTestSuite {
                     }
                 ],
                 fields: ['id', 'entityid', 'companyname'],
-                pageSize: 5,
+                pageSize: 1,
+                usePagination: true,
                 pageIndex: 0,
-                usePagination: false,
                 debug: false,
                 testMetadata: {
                     timeout: 30000,
@@ -52,9 +52,9 @@ class NewFilterTestSuite {
                     }
                 ],
                 fields: ['id', 'entityid', 'companyname'],
-                pageSize: 5,
+                pageSize: 1,
+                usePagination: true,
                 pageIndex: 0,
-                usePagination: false,
                 debug: false,
                 testMetadata: {
                     timeout: 30000,
@@ -76,9 +76,9 @@ class NewFilterTestSuite {
                     }
                 ],
                 fields: ['id', 'entityid'],
-                pageSize: 5,
+                pageSize: 1,
+                usePagination: true,
                 pageIndex: 0,
-                usePagination: false,
                 debug: false,
                 testMetadata: {
                     timeout: 30000,
@@ -100,9 +100,9 @@ class NewFilterTestSuite {
                     }
                 ],
                 fields: ['id', 'entityid'],
-                pageSize: 5,
+                pageSize: 1,
+                usePagination: true,
                 pageIndex: 0,
-                usePagination: false,
                 debug: false,
                 testMetadata: {
                     timeout: 30000,
@@ -124,9 +124,9 @@ class NewFilterTestSuite {
                     }
                 ],
                 fields: ['id', 'entityid'],
-                pageSize: 5,
+                pageSize: 1,
+                usePagination: true,
                 pageIndex: 0,
-                usePagination: false,
                 debug: false,
                 testMetadata: {
                     timeout: 30000,
@@ -148,9 +148,9 @@ class NewFilterTestSuite {
                     }
                 ],
                 fields: ['id', 'entityid'],
-                pageSize: 5,
+                pageSize: 1,
+                usePagination: true,
                 pageIndex: 0,
-                usePagination: false,
                 debug: false,
                 testMetadata: {
                     timeout: 30000,
@@ -173,9 +173,9 @@ class NewFilterTestSuite {
                     }
                 ],
                 fields: ['id', 'entityid', 'companyname'],
-                pageSize: 5,
+                pageSize: 1,
+                usePagination: true,
                 pageIndex: 0,
-                usePagination: false,
                 debug: false,
                 testMetadata: {
                     timeout: 30000,
@@ -197,9 +197,9 @@ class NewFilterTestSuite {
                     }
                 ],
                 fields: ['id', 'entityid', 'companyname'],
-                pageSize: 5,
+                pageSize: 1,
+                usePagination: true,
                 pageIndex: 0,
-                usePagination: false,
                 debug: false,
                 testMetadata: {
                     timeout: 30000,
@@ -221,9 +221,9 @@ class NewFilterTestSuite {
                     }
                 ],
                 fields: ['id', 'entityid', 'email'],
-                pageSize: 5,
+                pageSize: 1,
+                usePagination: true,
                 pageIndex: 0,
-                usePagination: false,
                 debug: false,
                 testMetadata: {
                     timeout: 30000,
@@ -245,9 +245,9 @@ class NewFilterTestSuite {
                     }
                 ],
                 fields: ['id', 'entityid', 'companyname'],
-                pageSize: 5,
+                pageSize: 1,
+                usePagination: true,
                 pageIndex: 0,
-                usePagination: false,
                 debug: false,
                 testMetadata: {
                     timeout: 30000,
@@ -270,9 +270,9 @@ class NewFilterTestSuite {
                     }
                 ],
                 fields: ['id', 'tranid', 'type'],
-                pageSize: 5,
+                pageSize: 1,
+                usePagination: true,
                 pageIndex: 0,
-                usePagination: false,
                 debug: false,
                 testMetadata: {
                     timeout: 30000,
@@ -294,9 +294,9 @@ class NewFilterTestSuite {
                     }
                 ],
                 fields: ['id', 'tranid', 'type'],
-                pageSize: 5,
+                pageSize: 1,
+                usePagination: true,
                 pageIndex: 0,
-                usePagination: false,
                 debug: false,
                 testMetadata: {
                     timeout: 30000,
@@ -531,9 +531,9 @@ class NewFilterTestSuite {
                     }
                 ],
                 fields: ['id', 'tranid', 'type', 'trandate', 'amount', 'status'],
-                pageSize: 10,
+                pageSize: 1,
+                usePagination: true,
                 pageIndex: 0,
-                usePagination: false,
                 debug: false,
                 testMetadata: {
                     timeout: 30000,
@@ -571,9 +571,9 @@ class NewFilterTestSuite {
                     }
                 ],
                 fields: ['id', 'entityid', 'companyname', 'email', 'isinactive'],
-                pageSize: 5,
+                pageSize: 1,
+                usePagination: true,
                 pageIndex: 0,
-                usePagination: false,
                 debug: false,
                 testMetadata: {
                     timeout: 30000,

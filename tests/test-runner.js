@@ -69,6 +69,8 @@ class NetSuiteTestRunner {
             } else if (arg === '--help' || arg === '-h') {
                 this.showHelp();
                 process.exit(0);
+            } else if (arg === '--no-conn-check') {
+                options.noConnCheck = true;
             }
         }
 
@@ -351,11 +353,15 @@ ${'='.repeat(60)}`);
         
         this.printBanner();
 
-        // Test connection first
-        const connected = await this.testConnection();
-        if (!connected) {
-            console.log(`❌ ${colors.red('Cannot proceed without connection. Please check your configuration.')}`);
-            process.exit(1);
+        // Test connection first unless skipped
+        if (!options.noConnCheck) {
+            const connected = await this.testConnection();
+            if (!connected) {
+                console.log(`❌ ${colors.red('Cannot proceed without connection. Please check your configuration.')}`);
+                process.exit(1);
+            }
+        } else {
+            console.log(`⚠️  ${colors.yellow('Skipping connection pre-check (--no-conn-check)')}`);
         }
 
         this.stats.startTime = Date.now();

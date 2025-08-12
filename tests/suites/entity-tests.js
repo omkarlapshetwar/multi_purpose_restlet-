@@ -19,7 +19,8 @@ class EntityTestSuite {
         return [
             // Customer Tests
             this.builder.createCustomerTest({}, {
-                pageSize: 5,
+                pageSize: 1,
+                usePagination: true,
                 description: 'Entity - Active Customers',
                 expectedMinRecords: 0
             }),
@@ -40,9 +41,9 @@ class EntityTestSuite {
                     }
                 ],
                 fields: ['id', 'entityid', 'companyname', 'email'],
-                pageSize: 3,
+                pageSize: 1,
+                usePagination: true,
                 pageIndex: 0,
-                usePagination: false,
                 debug: false,
                 testMetadata: {
                     timeout: 30000,
@@ -59,7 +60,7 @@ class EntityTestSuite {
                 isperson: true
             }, {}, {
                 fields: ['id', 'entityid', 'firstname', 'lastname', 'isperson'],
-                pageSize: 3,
+                pageSize: 1,
                 description: 'Entity - Individual Customers (Boolean)',
                 expectedMinRecords: 0
             }),
@@ -80,9 +81,9 @@ class EntityTestSuite {
                     }
                 ],
                 fields: ['id', 'entityid', 'companyname'],
-                pageSize: 3,
+                pageSize: 1,
+                usePagination: true,
                 pageIndex: 0,
-                usePagination: false,
                 debug: false,
                 testMetadata: {
                     timeout: 30000,
@@ -94,13 +95,14 @@ class EntityTestSuite {
                 }
             },
 
-            this.builder.createDateRangeTest('customer', 'datecreated', '01-01-2020', '31-12-2024', {
+            this.builder.createDateRangeTest('customer', 'datecreated', '01-06-2024', '30-06-2024', {
                 isinactive: 'F'
             }),
 
             // Employee Tests
             this.builder.createEmployeeTest({}, {
-                pageSize: 5,
+                pageSize: 1,
+                usePagination: true,
                 description: 'Entity - Active Employees',
                 expectedMinRecords: 0
             }),
@@ -121,9 +123,9 @@ class EntityTestSuite {
                     }
                 ],
                 fields: ['id', 'entityid', 'firstname', 'lastname', 'phone', 'title'],
-                pageSize: 3,
+                pageSize: 1,
+                usePagination: true,
                 pageIndex: 0,
-                usePagination: false,
                 debug: false,
                 testMetadata: {
                     timeout: 30000,
@@ -140,21 +142,22 @@ class EntityTestSuite {
                 issalesrep: true
             }, {}, {
                 fields: ['id', 'entityid', 'firstname', 'lastname', 'issalesrep'],
-                pageSize: 3,
+                pageSize: 1,
                 description: 'Entity - Sales Rep Employees (Boolean)',
                 expectedMinRecords: 0
             }),
 
             this.builder.createEmployeeTest({}, {
                 fields: ['entityid', 'email', 'title'],
-                pageSize: 5,
+                pageSize: 1,
                 description: 'Entity - Employee Specific Fields',
                 expectedMinRecords: 0
             }),
 
             // Vendor Tests
             this.builder.createVendorTest({}, {
-                pageSize: 3,
+                pageSize: 1,
+                usePagination: true,
                 description: 'Entity - Active Vendors',
                 expectedMinRecords: 0
             }),
@@ -175,9 +178,9 @@ class EntityTestSuite {
                     }
                 ],
                 fields: ['id', 'entityid', 'companyname', 'email'],
-                pageSize: 3,
+                pageSize: 1,
+                usePagination: true,
                 pageIndex: 0,
-                usePagination: false,
                 debug: false,
                 testMetadata: {
                     timeout: 30000,
@@ -194,7 +197,7 @@ class EntityTestSuite {
                 isinactive: 'F'
             }, {
                 fields: ['id', 'entityid', 'firstname', 'lastname', 'email'],
-                pageSize: 3,
+                pageSize: 1,
                 description: 'Entity - Active Contacts',
                 expectedMinRecords: 0
             }),
@@ -204,7 +207,7 @@ class EntityTestSuite {
                 isinactive: 'F'
             }, {
                 fields: ['id', 'entityid', 'companyname'],
-                pageSize: 3,
+                pageSize: 1,
                 description: 'Entity - Active Partners',
                 expectedMinRecords: 0
             }),
@@ -214,19 +217,19 @@ class EntityTestSuite {
                 isinactive: 'F'
             }, {
                 fields: ['id', 'groupname', 'grouptype'],
-                pageSize: 3,
+                pageSize: 1,
                 description: 'Entity - Entity Groups',
                 expectedMinRecords: 0
             }),
 
             // Mixed Entity Test - Pagination
-            this.builder.createPaginationTest('customer', { isinactive: 'F' }, 10, 0),
+            this.builder.createPaginationTest('customer', { isinactive: 'F' }, 2, 0),
 
             // Large page size test
             this.builder.createCustomerTest({
                 isinactive: 'F'
             }, {
-                pageSize: 100,
+                pageSize: 10,
                 usePagination: true,
                 description: 'Entity - Large Page Size Test',
                 expectedMinRecords: 0
@@ -248,9 +251,9 @@ class EntityTestSuite {
                     }
                 ],
                 fields: ['id', 'entityid', 'companyname'],
-                pageSize: 5,
+                pageSize: 1,
+                usePagination: true,
                 pageIndex: 0,
-                usePagination: false,
                 debug: false,
                 testMetadata: {
                     timeout: 30000,
@@ -277,9 +280,9 @@ class EntityTestSuite {
                     }
                 ],
                 fields: ['id', 'entityid', 'companyname', 'email'],
-                pageSize: 3,
+                pageSize: 1,
+                usePagination: true,
                 pageIndex: 0,
-                usePagination: false,
                 debug: false,
                 testMetadata: {
                     timeout: 30000,

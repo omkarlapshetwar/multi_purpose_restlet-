@@ -50,7 +50,7 @@ class TestBuilder {
                     operator: value ? 'is_true' : 'is_false',
                     value: value
                 });
-            } else if (typeof value === 'string' && value.includes('_startdate') || value.includes('_enddate')) {
+            } else if (typeof value === 'string' && (value.includes('_startdate') || value.includes('_enddate'))) {
                 // Skip date range fields, they'll be handled separately
                 continue;
             } else {
