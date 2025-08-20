@@ -554,6 +554,134 @@ const operatorExamples = {
 };
 
 // ===============================================
+// 💰 REVENUE ELEMENT FILTERS
+// ===============================================
+
+/**
+ * 33. Basic Revenue Plan Query
+ * Purpose: Get all revenue plan records
+ */
+const basicRevenuePlan = {
+  "recordType": "revenueplan",
+  "filters": {},
+  "fields": ["id", "transaction", "revenueplan", "startdate", "enddate", "amount"],
+  "pageSize": 10
+};
+
+/**
+ * 34. Revenue Plans by Date Range
+ * Purpose: Get revenue plans within specific date range
+ */
+const revenuePlanByDateRange = {
+  "recordType": "revenueplan",
+  "filters": {
+    "startdate_startdate": "01-01-2024",
+    "startdate_enddate": "31-12-2024"
+  },
+  "fields": ["id", "transaction", "revenueplan", "startdate", "enddate", "amount", "status"],
+  "pageSize": 10
+};
+
+/**
+ * 35. Revenue Plans by Amount Range
+ * Purpose: Get revenue plans within specific amount range
+ */
+const revenuePlanByAmount = {
+  "recordType": "revenueplan",
+  "filters": {
+    "amount": {
+      "operator": ">",
+      "value": "1000"
+    },
+    "amount": {
+      "operator": "<=",
+      "value": "10000"
+    }
+  },
+  "fields": ["id", "transaction", "revenueplan", "amount", "startdate", "enddate"],
+  "pageSize": 10
+};
+
+/**
+ * 36. Revenue Plans by Status
+ * Purpose: Get revenue plans with specific status
+ */
+const revenuePlanByStatus = {
+  "recordType": "revenueplan",
+  "filters": {
+    "status": "Active"
+  },
+  "fields": ["id", "transaction", "revenueplan", "status", "amount", "startdate"],
+  "pageSize": 10
+};
+
+/**
+ * 37. Revenue Plans for Sales Transactions
+ * Purpose: Get revenue plans for sales-related transactions
+ */
+const revenuePlanSalesTransactions = {
+  "recordType": "revenueplan",
+  "filters": {
+    "transaction.type": ["SalesOrd", "CustInvc", "CashSale"]
+  },
+  "fields": ["id", "transaction", "revenueplan", "amount", "startdate", "enddate"],
+  "pageSize": 10
+};
+
+/**
+ * 38. Revenue Recognition Schedule
+ * Purpose: Get revenue recognition schedule records
+ */
+const revenueRecognitionSchedule = {
+  "recordType": "revenuerecognitionschedule",
+  "filters": {
+    "startdate_startdate": "01-01-2024",
+    "startdate_enddate": "31-12-2024"
+  },
+  "fields": ["id", "transaction", "revenueplan", "startdate", "enddate", "amount", "recognized"],
+  "pageSize": 10
+};
+
+/**
+ * 39. Complex Revenue Plan Filter
+ * Purpose: Multiple conditions for revenue plans
+ */
+const complexRevenuePlan = {
+  "recordType": "revenueplan",
+  "filters": {
+    "startdate_startdate": "01-01-2024",
+    "startdate_enddate": "31-12-2024",
+    "amount": {
+      "operator": ">=",
+      "value": "500"
+    },
+    "status": {
+      "operator": "!=",
+      "value": "Cancelled"
+    }
+  },
+  "fields": ["id", "transaction", "revenueplan", "startdate", "enddate", "amount", "status"],
+  "pageSize": 10
+};
+
+/**
+ * 40. Revenue Plans with High Values
+ * Purpose: Get revenue plans above threshold amount
+ */
+const highValueRevenuePlans = {
+  "recordType": "revenueplan",
+  "filters": {
+    "amount": {
+      "operator": ">",
+      "value": "5000"
+    },
+    "status": "Active"
+  },
+  "fields": ["id", "transaction", "revenueplan", "amount", "startdate", "enddate", "status"],
+  "pageSize": 10
+};
+
+// ===============================================
 // 🚀 QUICK COPY-PASTE EXAMPLES
 // ===============================================
 
@@ -644,6 +772,15 @@ if (typeof module !== 'undefined' && module.exports) {
         minimalFields,
         idOnly,
         operatorExamples,
+        // Revenue Element Filters
+        basicRevenuePlan,
+        revenuePlanByDateRange,
+        revenuePlanByAmount,
+        revenuePlanByStatus,
+        revenuePlanSalesTransactions,
+        revenueRecognitionSchedule,
+        complexRevenuePlan,
+        highValueRevenuePlans,
         quickExample1,
         quickExample2,
         quickExample3
