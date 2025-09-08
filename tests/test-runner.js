@@ -14,6 +14,7 @@ const TransactionTestSuite = require('./suites/transaction-tests');
 const EntityTestSuite = require('./suites/entity-tests');
 const EdgeCaseTestSuite = require('./suites/edge-case-tests');
 const NewFilterTestSuite = require('./suites/new-filter-tests');
+const RestletThirdIterationTestSuite = require('./suites/restlet-3rd-iteration-tests');
 const AdvancedFilterTestSuite = require('./suites/advanced-filter-tests');
 
 /**
@@ -91,12 +92,13 @@ ${colors.yellow('Usage:')}
   npm run test:entities           Run entity tests (customer, employee, vendor)
   npm run test:edge-cases         Run edge case tests
   npm run test:new-filters        Run new filter structure tests
+  npm run test:restlet3           Run Restlet 3rd iteration tests
   npm run test:advanced-filters   Run advanced filter pattern tests
   npm run test:single             Run a single quick test
   npm run test:health             Run health check only
 
 ${colors.yellow('Options:')}
-  --suite=<name>        Run specific test suite (basic|transactions|entities|edge-cases|new-filters|advanced-filters|all)
+  --suite=<name>        Run specific test suite (basic|transactions|entities|edge-cases|new-filters|advanced-filters|restlet3|all)
   --single              Run only a quick single test
   --verbose, -v         Enable verbose output
   --bail, -b            Stop on first failure
@@ -110,6 +112,7 @@ ${colors.yellow('Test Suites:')}
   entities              Entity record tests (customers, employees, vendors)
   edge-cases            Boundary conditions and error scenarios
   new-filters           New filter structure and operator tests
+  restlet3              Restlet 3rd iteration scenarios
   advanced-filters      Advanced filter patterns and business logic tests
   all                   Run all test suites (default)
 
@@ -390,6 +393,9 @@ ${'='.repeat(60)}`);
                     case 'advanced-filters':
                         await this.runTestSuite(new AdvancedFilterTestSuite(), 'Advanced Filter Tests', options);
                         break;
+                    case 'restlet3':
+                        await this.runTestSuite(new RestletThirdIterationTestSuite(), 'Restlet 3rd Iteration Tests', options);
+                        break;
                     case 'all':
                     default:
                         await this.runTestSuite(new BasicTestSuite(), 'Basic Tests', options);
@@ -398,6 +404,7 @@ ${'='.repeat(60)}`);
                         await this.runTestSuite(new EdgeCaseTestSuite(), 'Edge Case Tests', options);
                         await this.runTestSuite(new NewFilterTestSuite(), 'New Filter Tests', options);
                         await this.runTestSuite(new AdvancedFilterTestSuite(), 'Advanced Filter Tests', options);
+                        await this.runTestSuite(new RestletThirdIterationTestSuite(), 'Restlet 3rd Iteration Tests', options);
                         break;
                 }
             }

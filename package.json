@@ -12,6 +12,7 @@
     "test:edge-cases": "node tests/test-runner.js --suite=edge-cases",
     "test:new-filters": "node tests/test-runner.js --suite=new-filters",
     "test:advanced-filters": "node tests/test-runner.js --suite=advanced-filters",
+    "test:restlet3": "node tests/test-runner.js --suite=restlet3",
     "test:single": "node tests/test-runner.js --single",
     "test:health": "node tests/health-check.js",
     "test:revenue": "node tests/revenue-element-tests.js",
