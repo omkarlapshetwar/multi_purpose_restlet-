@@ -1,0 +1,154 @@
+{
+  "examples": [
+    {
+      "name": "GL Name - Partial Match (Contains)",
+      "description": "Find all accounts containing 'Revenue' in the name",
+      "request": {
+        "filters": [
+          { "field": "glName", "operator": "contains", "value": "Revenue" },
+          { "field": "period", "operator": "=", "value": "Apr 2025" }
+        ],
+        "includeDetails": true
+      }
+    },
+    {
+      "name": "GL Name - Exact Match",
+      "description": "Find account with exact name 'Other Income'",
+      "request": {
+        "filters": [
+          { "field": "glName", "operator": "=", "value": "Other Income" },
+          { "field": "period", "operator": "=", "value": "Apr 2025" }
+        ],
+        "includeDetails": true
+      }
+    },
+    {
+      "name": "GL Name - Starts With",
+      "description": "Find accounts starting with 'Subscription'",
+      "request": {
+        "filters": [
+          { "field": "glName", "operator": "starts_with", "value": "Subscription" },
+          { "field": "period", "operator": "=", "value": "Apr 2025" }
+        ],
+        "includeDetails": true
+      }
+    },
+    {
+      "name": "GL Name - Ends With",
+      "description": "Find accounts ending with 'Income'",
+      "request": {
+        "filters": [
+          { "field": "glName", "operator": "ends_with", "value": "Income" },
+          { "field": "period", "operator": "=", "value": "Apr 2025" }
+        ],
+        "includeDetails": true
+      }
+    },
+    {
+      "name": "GL Name + Date Range",
+      "description": "Search by GL name with custom date range",
+      "request": {
+        "filters": [
+          { "field": "glName", "operator": "contains", "value": "Revenue" },
+          { "field": "trandate", "operator": ">=", "value": "2025-04-01" },
+          { "field": "trandate", "operator": "<=", "value": "2025-04-30" }
+        ],
+        "includeDetails": true
+      }
+    },
+    {
+      "name": "GL Name + Subsidiary",
+      "description": "Search by GL name for specific subsidiary",
+      "request": {
+        "filters": [
+          { "field": "glName", "operator": "contains", "value": "Revenue" },
+          { "field": "period", "operator": "=", "value": "Apr 2025" },
+          { "field": "subsidiary", "operator": "=", "value": "2" }
+        ],
+        "includeDetails": true
+      }
+    },
+    {
+      "name": "GL Name + Quarter Date Range",
+      "description": "Q1 2025 analysis by GL name",
+      "request": {
+        "filters": [
+          { "field": "glName", "operator": "contains", "value": "Subscription Revenue" },
+          { "field": "trandate", "operator": ">=", "value": "2025-01-01" },
+          { "field": "trandate", "operator": "<=", "value": "2025-03-31" }
+        ],
+        "includeDetails": true,
+        "topTransactionsLimit": 20
+      }
+    },
+    {
+      "name": "GL Name - Summary Only",
+      "description": "Get summary without transaction details",
+      "request": {
+        "filters": [
+          { "field": "glName", "operator": "contains", "value": "Revenue" },
+          { "field": "period", "operator": "=", "value": "Apr 2025" }
+        ],
+        "includeDetails": false
+      }
+    },
+    {
+      "name": "GL Name - Full Year Analysis",
+      "description": "Analyze entire year by GL name",
+      "request": {
+        "filters": [
+          { "field": "glName", "operator": "contains", "value": "Revenue" },
+          { "field": "trandate", "operator": ">=", "value": "2024-01-01" },
+          { "field": "trandate", "operator": "<=", "value": "2024-12-31" }
+        ],
+        "includeDetails": true,
+        "topTransactionsLimit": 50
+      }
+    },
+    {
+      "name": "GL Name - Multiple Keywords",
+      "description": "Search for accounts with 'Service Revenue'",
+      "request": {
+        "filters": [
+          { "field": "glName", "operator": "contains", "value": "Service Revenue" },
+          { "field": "period", "operator": "=", "value": "Apr 2025" }
+        ],
+        "includeDetails": true
+      }
+    }
+  ],
+  "commonPatterns": {
+    "revenueAccounts": {
+      "filters": [
+        { "field": "glName", "operator": "contains", "value": "Revenue" }
+      ]
+    },
+    "incomeAccounts": {
+      "filters": [
+        { "field": "glName", "operator": "contains", "value": "Income" }
+      ]
+    },
+    "expenseAccounts": {
+      "filters": [
+        { "field": "glName", "operator": "contains", "value": "Expense" }
+      ]
+    },
+    "cogsAccounts": {
+      "filters": [
+        { "field": "glName", "operator": "contains", "value": "COGS" }
+      ]
+    },
+    "subscriptionAccounts": {
+      "filters": [
+        { "field": "glName", "operator": "contains", "value": "Subscription" }
+      ]
+    }
+  },
+  "notes": {
+    "caseSensitivity": "GL name filters are case-sensitive. Use exact capitalization as in NetSuite.",
+    "operators": "Available operators: =, contains, starts_with, ends_with",
+    "bestPractice": "Use 'contains' for flexible searching, '=' for exact matches",
+    "dateFormats": "Supported: YYYY-MM-DD, DD-MM-YYYY, MM/DD/YYYY"
+  }
+}
+
